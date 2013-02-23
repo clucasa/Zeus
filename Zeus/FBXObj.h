@@ -11,6 +11,14 @@
 
 using namespace std;
 
+struct objectInfo
+{
+	float x,y,z;
+	float sx,sy,sz;
+	float rx, ry, rz;
+};
+
+
 class FBXObj
 {
 public:
@@ -25,12 +33,17 @@ public:
 	void LoadTextures(ID3D11Device* dev, vector<wchar_t*> filenames);
 	void LoadNormals(ID3D11Device* dev, vector<wchar_t*> filenames);
 
+	void LoadObjectInfo(objectInfo objectInfo);
+	void LoadObjectInfos(vector<objectInfo> objectInfos);
+
     UINT GetIndexCount();
     UINT GetVertexCount();
     vector<int> GetIndices();
     vector<XMFLOAT3> GetVertices();
     ID3D11Buffer* GetVB();
     ID3D11Buffer* GetIB();
+	vector<objectInfo> GetObjectInfos();
+	
 
     vector<ID3D11ShaderResourceView*> GetTextureArray();
     vector<ID3D11ShaderResourceView*> GetNormalArray();

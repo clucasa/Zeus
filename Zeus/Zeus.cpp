@@ -53,14 +53,6 @@ struct BoundingSphere
     float Radius;
 };
 
-struct objectInfo
-{
-	float x,y,z;
-	float sx,sy,sz;
-	float rx, ry, rz;
-};
-
-
 class ZeusApp : public D3DApp 
 {
 public:
@@ -166,7 +158,7 @@ private:
     XNA::AxisAlignedBox mSkullBox;
     XNA::Frustum mCamFrustum;
 
-    static const int SMapSize = 2048;
+    static const int SMapSize = 1024;
     ShadowMap* mSmap;
     ShadowMap* mSmap2;
     XMFLOAT4X4 mLightView;
@@ -177,9 +169,9 @@ private:
     ShadowMap* mOmniSmaps[6];
     XMFLOAT4X4 mShadowTransformOmni[6];
 
-    static const int CubeMapSizeSphere = 512;
-    static const int CubeMapSizeSkull = 512;
-    static const int CubeMapSizeMirror = 512;
+    static const int CubeMapSizeSphere = 256;
+    static const int CubeMapSizeSkull = 256;
+    static const int CubeMapSizeMirror = 256;
     ID3D11DepthStencilView* mDynamicCubeMapDSVSphere;
     ID3D11DepthStencilView* mDynamicCubeMapDSVSkull;
     ID3D11DepthStencilView* mDynamicCubeMapDSVMirror;
@@ -509,7 +501,7 @@ bool ZeusApp::Init()
     mSky  = new Sky(md3dDevice, L"Textures/mountains1024.dds", 5000.0f);
 
     Terrain::InitInfo tii;
-    tii.HeightMapFilename = L"Textures/terrain5.raw";
+    tii.HeightMapFilename = L"Textures/terrain3.raw";
     tii.LayerMapFilename0 = L"Textures/newdarkdirt.dds";
     tii.LayerMapFilename1 = L"Textures/newdarkdirt.dds";
     tii.LayerMapFilename2 = L"Textures/newstone.dds";
@@ -584,7 +576,7 @@ bool ZeusApp::Init()
     /*std::vector<std::wstring> raindrops;
     raindrops.push_back(L"Textures/raindrop.dds");
     mRainTexSRV = d3dHelper::CreateTexture2DArraySRV(md3dDevice, md3dImmediateContext, raindrops);
-
+	 
     mRain.Init(md3dDevice, Effects::RainFX, mRainTexSRV, mRandomTexSRV, 10000);*/
 
     directionalLight = true;
@@ -611,7 +603,7 @@ bool ZeusApp::Init()
     //CreateTreeMatrixes();
 
     //FBX objects
-    CreateFBXMatrixes();
+    
 
     return true;
 }
@@ -1391,7 +1383,7 @@ void ZeusApp::DrawScene(const Camera& camera, bool drawSphere, bool drawSkull, b
 
     activeObjTech->GetDesc( &techDesc );
     // Draw the FBX objects
-    for(int i = 0; i < 1; i++)
+    for(int i = 0; i < mFBXObjects.size(); i++)
     {
 		// Draw the FBX objects
 		mFBXVB = mFBXObjects[i]->GetVB();
@@ -1402,14 +1394,19 @@ void ZeusApp::DrawScene(const Camera& camera, bool drawSphere, bool drawSkull, b
 		
 		vector<ID3D11ShaderResourceView*> texVec = mFBXObjects[i]->GetTextureArray();
 		vector<ID3D11ShaderResourceView*> normVec = mFBXObjects[i]->GetNormalArray();
-		for(int j = 0; j < mFBXWorldCount; j++)
+
+		for(int j = 0; j < mFBXObjects[i]->GetObjectInfos().size(); j++)
 		{
+			objectInfo fbxpsr = mFBXObjects[i]->GetObjectInfos()[j];
+			XMMATRIX fbxOffset = XMMatrixTranslation(fbxpsr.x, fbxpsr.y, fbxpsr.z);
+			XMMATRIX fbxScale = XMMatrixScaling(fbxpsr.sx, fbxpsr.sy, fbxpsr.sz);
+			XMMATRIX fbxRotation = XMMatrixRotationX(fbxpsr.rx) * XMMatrixRotationY(fbxpsr.ry) * XMMatrixRotationZ(fbxpsr.rz);
+			world = XMMatrixMultiply(fbxScale, XMMatrixMultiply(fbxOffset, fbxRotation) );
+			worldInvTranspose = MathHelper::InverseTranspose(world);
+			worldViewProj = world*view*proj;
+
 			for(UINT p = 0; p < techDesc.Passes; ++p)
 			{
-				world = XMLoadFloat4x4(&mFBXWorld[j]);
-				worldInvTranspose = MathHelper::InverseTranspose(world);
-				worldViewProj = world*view*proj;
-
 				switch(mRenderOptions)
 				{
 				case RenderOptionsBasic:
@@ -1422,7 +1419,7 @@ void ZeusApp::DrawScene(const Camera& camera, bool drawSphere, bool drawSkull, b
 			world*XMLoadFloat4x4(&mShadowTransformOmni[2]),world*XMLoadFloat4x4(&mShadowTransformOmni[3]),
 			world*XMLoadFloat4x4(&mShadowTransformOmni[4]),world*XMLoadFloat4x4(&mShadowTransformOmni[5]));*/
 					Effects::BasicFX->SetTexTransform(XMMatrixScaling(1.0f, 1.0f, 1.0f));
-					Effects::BasicFX->SetMaterial(mFBXMats[0]);
+					Effects::BasicFX->SetMaterial(mFBXMats[i]);
 					Effects::BasicFX->SetTextureArray(texVec);
 					break;
 				case RenderOptionsNormalMap:
@@ -1435,7 +1432,7 @@ void ZeusApp::DrawScene(const Camera& camera, bool drawSphere, bool drawSkull, b
 			world*XMLoadFloat4x4(&mShadowTransformOmni[2]),world*XMLoadFloat4x4(&mShadowTransformOmni[3]),
 			world*XMLoadFloat4x4(&mShadowTransformOmni[4]),world*XMLoadFloat4x4(&mShadowTransformOmni[5]));*/
 					Effects::NormalMapFX->SetTexTransform(XMMatrixScaling(1.0f, 1.0f, 1.0f));
-					Effects::NormalMapFX->SetMaterial(mFBXMats[0]);
+					Effects::NormalMapFX->SetMaterial(mFBXMats[i]);
 					Effects::NormalMapFX->SetNormalArray(normVec);
 					Effects::NormalMapFX->SetTextureArray(texVec);
 					break;
@@ -2134,7 +2131,7 @@ void ZeusApp::DrawSceneToShadowMap()
 
     tessSmapTech->GetDesc( &techDesc );
     // Draw the FBX objects
-    for(int i = 0; i < 1; i++)
+    for(int i = 0; i < mFBXObjects.size(); i++)
     {
 		// Draw the FBX objects
 		mFBXVB = mFBXObjects[i]->GetVB();
@@ -2145,14 +2142,18 @@ void ZeusApp::DrawSceneToShadowMap()
 		
 		vector<ID3D11ShaderResourceView*> texVec = mFBXObjects[i]->GetTextureArray();
 		vector<ID3D11ShaderResourceView*> normVec = mFBXObjects[i]->GetNormalArray();
-		for(int j = 0; j < mFBXWorldCount; j++)
+		for(int j = 0; j < mFBXObjects[i]->GetObjectInfos().size(); j++)
 		{
+			objectInfo fbxpsr = mFBXObjects[i]->GetObjectInfos()[j];
+			XMMATRIX fbxOffset = XMMatrixTranslation(fbxpsr.x, fbxpsr.y, fbxpsr.z);
+			XMMATRIX fbxScale = XMMatrixScaling(fbxpsr.sx, fbxpsr.sy, fbxpsr.sz);
+			XMMATRIX fbxRotation = XMMatrixRotationX(fbxpsr.rx) * XMMatrixRotationY(fbxpsr.ry) * XMMatrixRotationZ(fbxpsr.rz);
+			world = XMMatrixMultiply(fbxScale, XMMatrixMultiply(fbxOffset, fbxRotation) );
+			worldInvTranspose = MathHelper::InverseTranspose(world);
+			worldViewProj = world*view*proj;
+
 			for(UINT p = 0; p < techDesc.Passes; ++p)
 			{
-				world = XMLoadFloat4x4(&mFBXWorld[j]);
-				worldInvTranspose = MathHelper::InverseTranspose(world);
-				worldViewProj = world*view*proj;
-
 				Effects::BuildShadowMapFX->SetWorld(world);
                 Effects::BuildShadowMapFX->SetWorldInvTranspose(worldInvTranspose);
                 Effects::BuildShadowMapFX->SetWorldViewProj(worldViewProj);
@@ -2601,7 +2602,7 @@ void ZeusApp::LoadTreeBuffer()
 	//	positions.push_back(verts[i].Pos);
  //   }
     FBXImporter importer;
-    importer.Import("Models/bigbadman.fbx", &positions, &indices, &norms, &texVec, &texNum);
+    importer.Import("Models/arrow.fbx", &positions, &indices, &norms, &texVec, &texNum);
 
 	Vertex::PosNormalTexTan tempVert;
 
@@ -2705,57 +2706,185 @@ void ZeusApp::CreateTreeMatrixes()
 
 void ZeusApp::LoadFBXBuffers()
 {
-    char line[100];
+	std::ifstream fin("Placement/scene.txt");
+    if(!fin)
+    {
+        MessageBox(0, L"Placement/scene.txt not found.", 0, 0);
+        return;
+    }
 
-    char *filenames[] = {
-        "Models/bigbadman.fbx"
-    };
+	vector<char*> filenames;
+	int numFiles = 0;
+	char filename[100];
+    char line[100];
+    while( !fin.eof() ) {
+        fin >> line;
+        if( strcmp( line, "#" ) == 0 ) 
+		{
+            // Read in the comment and do nothing
+            fin.getline( line, 100);
+        } 
+		else 
+		{
+            if( strcmp( line, "o" ) == 0 ) 
+			{
+				//filenames.
+				fin >> line;
+				filename = line; //[dc This needs to not copy over the same stuff from before!!
+                filenames.push_back( line );
+				numFiles++;
+            }
+        }
+    }
+	fin.close();
     
-    int numFiles = sizeof(filenames) / sizeof(char*);
+	//char *filenames[] = {
+ //       "Models/archway.fbx"
+ //   };
+ //   
+   
+	mFBXMats = new Material[numFiles];
+
     for(int i = 0; i < numFiles; i++)
     {
-        FBXObj object;
-        object.Import(filenames[i], md3dDevice);
-		object.LoadTexture(md3dDevice, L"Textures/CommandoArmor_DM.dds");
-		object.LoadTexture(md3dDevice, L"Textures/Commando_DM.dds");
-		object.LoadNormal(md3dDevice, L"Textures/CommandoArmor_NM.dds");
-		object.LoadNormal(md3dDevice, L"Textures/Commando_NM.dds");
-        mFBXObjects.push_back(&object);
+		std::ifstream oin(filenames[i]);
+		if(!oin)
+		{
+			MessageBox(0, L"object.txt not found.", 0, 0);
+			return;
+		}
+
+		char* model;
+		vector<char*> textures;
+		vector<char*> normals;
+		vector<objectInfo> objInfo;
+
+		char oline[100];
+		while( !oin.eof() ) {
+			oin >> oline;
+			if( strcmp( oline, "#" ) == 0 ) 
+			{
+				// Read in the comment and do nothing
+				oin.getline( oline, 100);
+			} 
+			else 
+			{
+				if( strcmp( oline, "m" ) == 0 ) 
+				{
+					char filename[100];
+					oin >> filename;
+					model = filename;
+					delete[] filename;
+				}
+				else if( strcmp( oline, "t" ) == 0 ) 
+				{
+					/*char* filename;
+					oin >> filename;
+					textures.push_back(filename);*/
+				}
+				else if( strcmp( oline, "n" ) == 0 ) 
+				{
+					/*char* filename;
+					oin >> filename;
+					normals.push_back(filename);*/
+				}
+				else if( strcmp( oline, "i" ) == 0 ) 
+				{
+					//oin >> oline;
+					objectInfo object;
+					oin >> object.x >> object.y >> object.z >> object.sx >> object.sy >> object.sz
+						>> object.rx >> object.ry >> object.rz;
+					objInfo.push_back(object);
+				}
+			}
+		}
+		fin.close();
+
+		FBXObj fbxobject;
+        fbxobject.Import(model, md3dDevice);
+		for(int k = 0; k < textures.size(); k++)
+		{
+			// Convert to a wchar_t*
+			size_t origsize = strlen(textures[i]) + 1;
+			const size_t newsize = 100;
+			size_t convertedChars = 0;
+			wchar_t wcstring[newsize];
+			mbstowcs_s(&convertedChars, wcstring, origsize, textures[i], _TRUNCATE);
+			wcscat_s(wcstring, L" (wchar_t *)");
+			fbxobject.LoadTexture(md3dDevice, wcstring);
+		}
+		for(int k = 0; k < normals.size(); k++)
+		{
+			// Convert to a wchar_t*
+			size_t origsize = strlen(normals[i]) + 1;
+			const size_t newsize = 100;
+			size_t convertedChars = 0;
+			wchar_t wcstring[newsize];
+			mbstowcs_s(&convertedChars, wcstring, origsize, normals[i], _TRUNCATE);
+			wcscat_s(wcstring, L" (wchar_t *)");
+			fbxobject.LoadNormal(md3dDevice, wcstring);
+		}
+		fbxobject.LoadObjectInfos(objInfo);
+        mFBXObjects.push_back(&fbxobject);
+
+		//Put into physx
+		for(int j = 0; j < objInfo.size(); j++)
+		{
+			CreatePhysXTriangleMesh(ObjectNumbers::cow, mFBXObjects[i]->GetVertexCount(), mFBXObjects[i]->GetVertices(),
+				mFBXObjects[i]->GetIndexCount(), mFBXObjects[i]->GetIndices(), objInfo[i].x, objInfo[i].y, objInfo[i].z, objInfo[i].sx);
+		}
+
+		//Load materials
+		mFBXMats[i].Ambient  = XMFLOAT4(0.99f, 0.99f, 0.99f, 1.0f);
+		mFBXMats[i].Diffuse  = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+		mFBXMats[i].Specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 0.8f);
+		mFBXMats[i].Reflect  = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+
+  //      FBXObj object;
+  //      object.Import(filenames[i], md3dDevice);
+		//object.LoadTexture(md3dDevice, L"Textures/PRP_Ornatearch_A_DM.bmp");
+		////object.LoadTexture(md3dDevice, L"Textures/PRP_Log_A_DM.bmp");
+		////object.LoadNormal(md3dDevice, L"Textures/CommandoArmor_NM.dds");
+		//object.LoadNormal(md3dDevice, L"Textures/PRP_Ornatearch_A_NM.bmp");
+
+        //mFBXObjects.push_back(&fbxobject);
     }
+
+	//CreateFBXMatrixes();
 }
 
 void ZeusApp::CreateFBXMatrixes()
 {
     objectInfo fbxpsr[] = {
-        {	10.0f,	0.0f,	50.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	0.0f,	0.0f,	30.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	-10.0f,	0.0f,	75.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	50.0f,	0.0f,	10.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	70.0f,	0.0f,	50.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	80.0f,	0.0f,	-30.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	30.0f,	0.0f,	-10.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	55.0f,	0.0f,	60.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	85.0f,	0.0f,	40.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	20.0f,	0.0f,	20.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	82.0f,	0.0f,	-3.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	}, 
-        {	46.0f,	0.0f,	-48.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	}, 
-        {	-35.0f,	0.0f,	-39.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	}, 
-        {	49.0f,	0.0f,	-27.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	56.0f,	0.0f,	-77.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	25.0f,	0.0f,	-72.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	14.0f,	0.0f,	-53.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	-9.0f,	0.0f,	-38.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	-58.0f,	0.0f,	-45.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	-81.0f,	0.0f,	-23.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	-99.0f,	0.0f,	-45.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	68.0f,	0.0f,	-89.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	100.0f,	0.0f,	-72.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	138.0f,	0.0f,	-36.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	120.0f,	0.0f,	4.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	79.0f,	0.0f,	84.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	32.0f,	0.0f,	95.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	-3.0f,	0.0f,	104.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	},
-        {	-28.0f,	0.0f,	144.0f,	8.0,	8.0,	8.0,	0.0f,	0.0f,	0.0f	}
+        {	10.0f,	0.0f,	50.0f,	0.06,	0.06,	0.06,	0.0f,	0.0f,	0.0f	},
+        {	0.0f,	0.0f,	30.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	-10.0f,	0.0f,	75.0f,	0.07,	0.07,	0.07,	0.0f,	0.0f,	0.0f	},
+        {	50.0f,	0.0f,	10.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	70.0f,	0.0f,	50.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	},
+        {	80.0f,	0.0f,	-30.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	30.0f,	0.0f,	-10.0f,	0.06,	0.06,	0.06,	0.0f,	0.0f,	0.0f	},
+        {	55.0f,	0.0f,	60.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	85.0f,	0.0f,	40.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	20.0f,	0.0f,	20.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	82.0f,	0.0f,	-3.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	}, 
+        {	46.0f,	0.0f,	-48.0f,	0.07,	0.07,	0.07,	0.0f,	0.0f,	0.0f	}, 
+        {	-35.0f,	0.0f,	-39.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	}, 
+        {	49.0f,	0.0f,	-27.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	56.0f,	0.0f,	-77.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	25.0f,	0.0f,	-72.0f,	0.10,	0.10,	0.10,	0.0f,	0.0f,	0.0f	},
+        {	14.0f,	0.0f,	-53.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	-9.0f,	0.0f,	-38.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	-58.0f,	0.0f,	-45.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	},
+        {	-81.0f,	0.0f,	-23.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	-99.0f,	0.0f,	-45.0f,	0.06,	0.06,	0.06,	0.0f,	0.0f,	0.0f	},
+        {	68.0f,	0.0f,	-89.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	100.0f,	0.0f,	-72.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	138.0f,	0.0f,	-36.0f,	0.07,	0.05,	0.07,	0.0f,	0.0f,	0.0f	},
+        {	120.0f,	0.0f,	4.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	79.0f,	0.0f,	84.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	},
+        {	32.0f,	0.0f,	95.0f,	0.07,	0.05,	0.07,	0.0f,	0.0f,	0.0f	},
+        {	-3.0f,	0.0f,	104.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
+        {	-28.0f,	0.0f,	144.0f,	0.09,	0.09,	0.09,	0.0f,	0.0f,	0.0f	}
     };
 
     mFBXWorldCount = sizeof( fbxpsr ) / sizeof( objectInfo );

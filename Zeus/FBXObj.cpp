@@ -14,6 +14,8 @@ ID3D11Buffer* mIB = 0;
 vector<ID3D11ShaderResourceView*> mTextureArray;
 vector<ID3D11ShaderResourceView*> mNormalArray;
 
+vector<objectInfo> mInformations;
+
 FBXImporter mFBXImporter;
 
 FBXObj::FBXObj() /*: 
@@ -141,6 +143,19 @@ void FBXObj::LoadNormals(ID3D11Device* dev, vector<wchar_t*> filenames)
 	}
 }
 
+void FBXObj::LoadObjectInfo(objectInfo objectInfo)
+{
+	mInformations.push_back(objectInfo);
+}
+
+void FBXObj::LoadObjectInfos(vector<objectInfo> objectInfos)
+{
+	for(int i = 0; i < objectInfos.size() ; i++)
+	{
+		mInformations.push_back(objectInfos[i]);
+	}
+}
+
 UINT FBXObj::GetIndexCount()
 {
     return mIndexCount;
@@ -179,4 +194,9 @@ vector<ID3D11ShaderResourceView*> FBXObj::GetTextureArray()
 vector<ID3D11ShaderResourceView*> FBXObj::GetNormalArray()
 {
     return mNormalArray;
+}
+
+vector<objectInfo> FBXObj::GetObjectInfos()
+{
+	return mInformations;
 }

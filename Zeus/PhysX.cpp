@@ -92,10 +92,10 @@ void PhysX::Init()
 	
 	//customizeSceneDesc(sceneDesc);
 	//Continuous Collision Detection
-	sceneDesc.flags |= PxSceneFlag::eENABLE_SWEPT_INTEGRATION;
-	sceneDesc.filterShader = filterShader;
-	sceneDesc.sweptIntegrationLinearSpeedFactor = .00005;
-	sceneDesc.sweptIntegrationAngularSpeedFactor = .00005;
+	//sceneDesc.flags |= PxSceneFlag::eENABLE_SWEPT_INTEGRATION;
+	//sceneDesc.filterShader = filterShader;
+	//sceneDesc.sweptIntegrationLinearSpeedFactor = .00005;
+	//sceneDesc.sweptIntegrationAngularSpeedFactor = .00005;
 
 	pxCpuDispatcher = PxDefaultCpuDispatcherCreate(1);
 	sceneDesc.cpuDispatcher	= pxCpuDispatcher;
@@ -136,7 +136,7 @@ void PhysX::Init()
 }
 
 float mAccumulator = 0.0f;
-float mStepSize = 1.0f / 60.0f;
+float mStepSize = 1.0f / 120.0f;
 float mCooldown = 0.0f;
 
 bool PhysX::advance(float dt)
