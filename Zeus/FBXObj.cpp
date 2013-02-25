@@ -104,12 +104,45 @@ void FBXObj::Import(char* filename, ID3D11Device* dev)
     HR(dev->CreateBuffer(&ibd, &iinitData, &mIB));
 }
 
+
+void FBXObj::Import(string filename, ID3D11Device* dev)
+{
+	char *cstr = new char[filename.length() + 1];
+	strcpy(cstr, filename.c_str());
+
+	Import(cstr,dev);
+
+	delete [] cstr;
+}
+
+void FBXObj::LoadTexture(ID3D11Device* dev, string filename)
+{
+	wchar_t* wide_string = new wchar_t[ filename.length() + 1 ];
+	std::copy( filename.begin(), filename.end(), wide_string );
+	wide_string[ filename.length() ] = 0;
+
+	LoadTexture( dev, wide_string );
+
+	delete [] wide_string;
+}
+
 void FBXObj::LoadTexture(ID3D11Device* dev, wchar_t* filename)
 {
 	ID3D11ShaderResourceView* texture;
 	HR(D3DX11CreateShaderResourceViewFromFile(dev, 
         filename, 0, 0, &texture, 0 ));
 	mTextureArray.push_back(texture);
+}
+
+void FBXObj::LoadNormal(ID3D11Device* dev, string filename)
+{
+	wchar_t* wide_string = new wchar_t[ filename.length() + 1 ];
+	std::copy( filename.begin(), filename.end(), wide_string );
+	wide_string[ filename.length() ] = 0;
+
+	LoadNormal( dev, wide_string );
+
+	delete [] wide_string;
 }
 
 void FBXObj::LoadNormal(ID3D11Device* dev, wchar_t* filename)
@@ -139,6 +172,34 @@ void FBXObj::LoadNormals(ID3D11Device* dev, vector<wchar_t*> filenames)
 		ID3D11ShaderResourceView* texture;
 		HR(D3DX11CreateShaderResourceViewFromFile(dev, 
 			filenames[i], 0, 0, &texture, 0 ));
+		mNormalArray.push_back(texture);
+	}
+}
+
+void FBXObj::LoadTextures(ID3D11Device* dev, vector<string> filenames)
+{
+	for(int i = 0; i < filenames.size() ; i++)
+	{
+		wchar_t* wide_string = new wchar_t[ filenames[i].length() + 1 ];
+		std::copy( filenames[i].begin(), filenames[i].end(), wide_string );
+		wide_string[ filenames[i].length() ] = 0;
+		ID3D11ShaderResourceView* texture;
+		HR(D3DX11CreateShaderResourceViewFromFile(dev, 
+			wide_string, 0, 0, &texture, 0 ));
+		mTextureArray.push_back(texture);
+	}
+}
+
+void FBXObj::LoadNormals(ID3D11Device* dev, vector<string> filenames)
+{
+	for(int i = 0; i < filenames.size() ; i++)
+	{
+		wchar_t* wide_string = new wchar_t[ filenames[i].length() + 1 ];
+		std::copy( filenames[i].begin(), filenames[i].end(), wide_string );
+		wide_string[ filenames[i].length() ] = 0;
+		ID3D11ShaderResourceView* texture;
+		HR(D3DX11CreateShaderResourceViewFromFile(dev, 
+			wide_string, 0, 0, &texture, 0 ));
 		mNormalArray.push_back(texture);
 	}
 }

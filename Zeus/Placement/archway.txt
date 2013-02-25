@@ -2,4 +2,6 @@
 m Models/archway.fbx
 t Textures/PRP_Ornatearch_A_DM.bmp
 n Textures/PRP_Ornatearch_A_NM.bmp
-i 180.0 0.0 20.0 0.1 0.1 0.1 0.0 0.0 0.0
+i 322.0 0.0 -256.0 0.1 0.1 0.1 0.0 0.0 0.0
+i 185.0 0.0 40.0 0.1 0.1 0.1 0.0 0.0 0.0
+i 115.0 0.0 185.0 0.1 0.1 0.1 0.0 0.0 0.0

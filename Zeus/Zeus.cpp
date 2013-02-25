@@ -116,7 +116,7 @@ private:
     ID3D11Buffer* mFBXVB;
     ID3D11Buffer* mFBXIB;
 	
-    vector<FBXObj*> mFBXObjects;
+    vector<FBXObj> mFBXObjects;
 
     ID3D11Buffer* mSkySphereVB;
     ID3D11Buffer* mSkySphereIB;
@@ -1383,21 +1383,21 @@ void ZeusApp::DrawScene(const Camera& camera, bool drawSphere, bool drawSkull, b
 
     activeObjTech->GetDesc( &techDesc );
     // Draw the FBX objects
-    for(int i = 0; i < mFBXObjects.size(); i++)
+	for(int i = 1; i < 5; i++)
     {
 		// Draw the FBX objects
-		mFBXVB = mFBXObjects[i]->GetVB();
-		mFBXIB = mFBXObjects[i]->GetIB();
+		mFBXVB = mFBXObjects[i].GetVB();
+		mFBXIB = mFBXObjects[i].GetIB();
 		md3dImmediateContext->IASetInputLayout(InputLayouts::PosNormalTexTan);
 		md3dImmediateContext->IASetVertexBuffers(0, 1, &mFBXVB, &stride, &offset);
 		md3dImmediateContext->IASetIndexBuffer(mFBXIB, DXGI_FORMAT_R32_UINT, 0);
 		
-		vector<ID3D11ShaderResourceView*> texVec = mFBXObjects[i]->GetTextureArray();
-		vector<ID3D11ShaderResourceView*> normVec = mFBXObjects[i]->GetNormalArray();
+		vector<ID3D11ShaderResourceView*> texVec = mFBXObjects[i].GetTextureArray();
+		vector<ID3D11ShaderResourceView*> normVec = mFBXObjects[i].GetNormalArray();
 
-		for(int j = 0; j < mFBXObjects[i]->GetObjectInfos().size(); j++)
+		for(int j = 0; j < mFBXObjects[i].GetObjectInfos().size(); j++)
 		{
-			objectInfo fbxpsr = mFBXObjects[i]->GetObjectInfos()[j];
+			objectInfo fbxpsr = mFBXObjects[i].GetObjectInfos()[j];
 			XMMATRIX fbxOffset = XMMatrixTranslation(fbxpsr.x, fbxpsr.y, fbxpsr.z);
 			XMMATRIX fbxScale = XMMatrixScaling(fbxpsr.sx, fbxpsr.sy, fbxpsr.sz);
 			XMMATRIX fbxRotation = XMMatrixRotationX(fbxpsr.rx) * XMMatrixRotationY(fbxpsr.ry) * XMMatrixRotationZ(fbxpsr.rz);
@@ -1439,7 +1439,7 @@ void ZeusApp::DrawScene(const Camera& camera, bool drawSphere, bool drawSkull, b
 				}
         
 				activeObjTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-				md3dImmediateContext->DrawIndexed(mFBXObjects[i]->GetIndexCount(), 0, 0);
+				md3dImmediateContext->DrawIndexed(mFBXObjects[i].GetIndexCount(), 0, 0);
 			}
 		}
     }
@@ -2134,17 +2134,17 @@ void ZeusApp::DrawSceneToShadowMap()
     for(int i = 0; i < mFBXObjects.size(); i++)
     {
 		// Draw the FBX objects
-		mFBXVB = mFBXObjects[i]->GetVB();
-		mFBXIB = mFBXObjects[i]->GetIB();
+		mFBXVB = mFBXObjects[i].GetVB();
+		mFBXIB = mFBXObjects[i].GetIB();
 		md3dImmediateContext->IASetInputLayout(InputLayouts::PosNormalTexTan);
 		md3dImmediateContext->IASetVertexBuffers(0, 1, &mFBXVB, &stride, &offset);
 		md3dImmediateContext->IASetIndexBuffer(mFBXIB, DXGI_FORMAT_R32_UINT, 0);
 		
-		vector<ID3D11ShaderResourceView*> texVec = mFBXObjects[i]->GetTextureArray();
-		vector<ID3D11ShaderResourceView*> normVec = mFBXObjects[i]->GetNormalArray();
-		for(int j = 0; j < mFBXObjects[i]->GetObjectInfos().size(); j++)
+		vector<ID3D11ShaderResourceView*> texVec = mFBXObjects[i].GetTextureArray();
+		vector<ID3D11ShaderResourceView*> normVec = mFBXObjects[i].GetNormalArray();
+		for(int j = 0; j < mFBXObjects[i].GetObjectInfos().size(); j++)
 		{
-			objectInfo fbxpsr = mFBXObjects[i]->GetObjectInfos()[j];
+			objectInfo fbxpsr = mFBXObjects[i].GetObjectInfos()[j];
 			XMMATRIX fbxOffset = XMMatrixTranslation(fbxpsr.x, fbxpsr.y, fbxpsr.z);
 			XMMATRIX fbxScale = XMMatrixScaling(fbxpsr.sx, fbxpsr.sy, fbxpsr.sz);
 			XMMATRIX fbxRotation = XMMatrixRotationX(fbxpsr.rx) * XMMatrixRotationY(fbxpsr.ry) * XMMatrixRotationZ(fbxpsr.rz);
@@ -2160,7 +2160,7 @@ void ZeusApp::DrawSceneToShadowMap()
                 Effects::BuildShadowMapFX->SetTexTransform(XMMatrixScaling(1.0f, 1.0f, 1.0f));
         
 				tessSmapTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-				md3dImmediateContext->DrawIndexed(mFBXObjects[i]->GetIndexCount(), 0, 0);
+				md3dImmediateContext->DrawIndexed(mFBXObjects[i].GetIndexCount(), 0, 0);
 			}
 		}
     }
@@ -2713,36 +2713,34 @@ void ZeusApp::LoadFBXBuffers()
         return;
     }
 
-	vector<char*> filenames;
+	vector<string> filenames;
+	std::vector<string> elems;
+	string lines, olines;
+	string item;
 	int numFiles = 0;
-	char filename[100];
-    char line[100];
-    while( !fin.eof() ) {
-        fin >> line;
-        if( strcmp( line, "#" ) == 0 ) 
+	while(getline(fin, lines))
+	{
+		if(!lines.length()) continue; //skip empty
+		if (lines[0] == '#') //skip comments
 		{
-            // Read in the comment and do nothing
-            fin.getline( line, 100);
-        } 
-		else 
+			continue;
+		}
+		else if (lines[0] == 'o') 
 		{
-            if( strcmp( line, "o" ) == 0 ) 
-			{
-				//filenames.
-				fin >> line;
-				filename = line; //[dc This needs to not copy over the same stuff from before!!
-                filenames.push_back( line );
-				numFiles++;
-            }
-        }
-    }
+			
+			string* sline;
+			sline = &lines;
+			stringstream ss(*sline);
+			while(std::getline(ss, item, ' ')) {
+				elems.push_back(item);
+			}
+			filenames.push_back(elems[1]);
+			numFiles++;
+			elems.clear();
+		}
+	}
 	fin.close();
-    
-	//char *filenames[] = {
- //       "Models/archway.fbx"
- //   };
- //   
-   
+
 	mFBXMats = new Material[numFiles];
 
     for(int i = 0; i < numFiles; i++)
@@ -2754,84 +2752,92 @@ void ZeusApp::LoadFBXBuffers()
 			return;
 		}
 
-		char* model;
-		vector<char*> textures;
-		vector<char*> normals;
+		string model;
+		vector<string> textures;
+		vector<string> normals;
 		vector<objectInfo> objInfo;
 
-		char oline[100];
-		while( !oin.eof() ) {
-			oin >> oline;
-			if( strcmp( oline, "#" ) == 0 ) 
+		while(getline(oin, olines))
+		{
+			if(!olines.length()) continue; //skip empty
+			if (olines[0] == '#') //skip comments
 			{
-				// Read in the comment and do nothing
-				oin.getline( oline, 100);
-			} 
-			else 
+				continue;
+			}
+			else if (olines[0] == 'm') 
 			{
-				if( strcmp( oline, "m" ) == 0 ) 
-				{
-					char filename[100];
-					oin >> filename;
-					model = filename;
-					delete[] filename;
+				stringstream ss(olines);
+				while(std::getline(ss, item, ' ')) {
+					elems.push_back(item);
 				}
-				else if( strcmp( oline, "t" ) == 0 ) 
-				{
-					/*char* filename;
-					oin >> filename;
-					textures.push_back(filename);*/
+				model = elems[1];
+				elems.clear();
+			}
+			else if (olines[0] == 't') 
+			{
+				string* sline;
+				sline = &olines;
+				stringstream ss(*sline);
+				while(std::getline(ss, item, ' ')) {
+					elems.push_back(item);
 				}
-				else if( strcmp( oline, "n" ) == 0 ) 
-				{
-					/*char* filename;
-					oin >> filename;
-					normals.push_back(filename);*/
+				textures.push_back(elems[1]);
+				elems.clear();
+			}
+			else if (olines[0] == 'n') 
+			{
+				string* sline;
+				sline = &olines;
+				stringstream ss(*sline);
+				while(std::getline(ss, item, ' ')) {
+					elems.push_back(item);
 				}
-				else if( strcmp( oline, "i" ) == 0 ) 
-				{
-					//oin >> oline;
-					objectInfo object;
-					oin >> object.x >> object.y >> object.z >> object.sx >> object.sy >> object.sz
-						>> object.rx >> object.ry >> object.rz;
-					objInfo.push_back(object);
+				normals.push_back(elems[1]);
+				elems.clear();
+			}
+			else if (olines[0] == 'i') 
+			{
+				string* sline;
+				sline = &olines;
+				stringstream ss(*sline);
+				while(std::getline(ss, item, ' ')) {
+					elems.push_back(item);
 				}
+				objectInfo object;
+				object.x = ::atof(elems[1].c_str());
+				object.y = ::atof(elems[2].c_str());
+				object.z = ::atof(elems[3].c_str());
+				object.sx = ::atof(elems[4].c_str());
+				object.sy = ::atof(elems[5].c_str());
+				object.sz = ::atof(elems[6].c_str());
+				object.rx = ::atof(elems[7].c_str());
+				object.ry = ::atof(elems[8].c_str());
+				object.rz = ::atof(elems[9].c_str());
+
+				objInfo.push_back(object);
+				elems.clear();
 			}
 		}
 		fin.close();
 
-		FBXObj fbxobject;
-        fbxobject.Import(model, md3dDevice);
+		FBXObj* fbxobject;
+		fbxobject->Import(model, md3dDevice);
 		for(int k = 0; k < textures.size(); k++)
 		{
-			// Convert to a wchar_t*
-			size_t origsize = strlen(textures[i]) + 1;
-			const size_t newsize = 100;
-			size_t convertedChars = 0;
-			wchar_t wcstring[newsize];
-			mbstowcs_s(&convertedChars, wcstring, origsize, textures[i], _TRUNCATE);
-			wcscat_s(wcstring, L" (wchar_t *)");
-			fbxobject.LoadTexture(md3dDevice, wcstring);
+			fbxobject->LoadTexture(md3dDevice, textures[k]);
 		}
 		for(int k = 0; k < normals.size(); k++)
 		{
-			// Convert to a wchar_t*
-			size_t origsize = strlen(normals[i]) + 1;
-			const size_t newsize = 100;
-			size_t convertedChars = 0;
-			wchar_t wcstring[newsize];
-			mbstowcs_s(&convertedChars, wcstring, origsize, normals[i], _TRUNCATE);
-			wcscat_s(wcstring, L" (wchar_t *)");
-			fbxobject.LoadNormal(md3dDevice, wcstring);
+			fbxobject->LoadNormal(md3dDevice, normals[k]);
 		}
-		fbxobject.LoadObjectInfos(objInfo);
-        mFBXObjects.push_back(&fbxobject);
+		fbxobject->LoadObjectInfos(objInfo);
+        mFBXObjects.push_back(*fbxobject);
 
 		//Put into physx
 		for(int j = 0; j < objInfo.size(); j++)
 		{
-			CreatePhysXTriangleMesh(ObjectNumbers::cow, mFBXObjects[i]->GetVertexCount(), mFBXObjects[i]->GetVertices(),
-				mFBXObjects[i]->GetIndexCount(), mFBXObjects[i]->GetIndices(), objInfo[i].x, objInfo[i].y, objInfo[i].z, objInfo[i].sx);
+			CreatePhysXTriangleMesh(ObjectNumbers::cow, mFBXObjects[i].GetVertexCount(), mFBXObjects[i].GetVertices(),
+				mFBXObjects[i].GetIndexCount(), mFBXObjects[i].GetIndices(), objInfo[j].x, objInfo[j].y, objInfo[j].z, objInfo[j].sx);
 		}
 
 		//Load materials
@@ -2908,8 +2914,8 @@ void ZeusApp::CreateFBXMatrixes()
 		
         XMStoreFloat4x4(&mFBXWorld[i], XMMatrixMultiply(fbxScale, XMMatrixMultiply(fbxOffset, fbxRotation) ) );
         //Put into physx
-		CreatePhysXTriangleMesh(ObjectNumbers::cow, mFBXObjects[0]->GetVertexCount(), mFBXObjects[0]->GetVertices(),
-			mFBXObjects[0]->GetIndexCount(), mFBXObjects[0]->GetIndices(), fbxpsr[i].x, fbxpsr[i].y, fbxpsr[i].z, fbxpsr[i].sx);
+		//CreatePhysXTriangleMesh(ObjectNumbers::cow, mFBXObjects[0]->GetVertexCount(), mFBXObjects[0]->GetVertices(),
+		//	mFBXObjects[0]->GetIndexCount(), mFBXObjects[0]->GetIndices(), fbxpsr[i].x, fbxpsr[i].y, fbxpsr[i].z, fbxpsr[i].sx);
     }
 }
 

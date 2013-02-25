@@ -26,12 +26,17 @@ public:
     ~FBXObj();
 
     void Import(char* filename, ID3D11Device* dev);
+	void Import(string filename, ID3D11Device* dev);
 	
+	void LoadTexture(ID3D11Device* dev, string filename);
 	void LoadTexture(ID3D11Device* dev, wchar_t* filename);
+	void LoadNormal(ID3D11Device* dev, string filename);
 	void LoadNormal(ID3D11Device* dev, wchar_t* filename);
 
 	void LoadTextures(ID3D11Device* dev, vector<wchar_t*> filenames);
+	void LoadTextures(ID3D11Device* dev, vector<string> filenames);
 	void LoadNormals(ID3D11Device* dev, vector<wchar_t*> filenames);
+	void LoadNormals(ID3D11Device* dev, vector<string> filename);
 
 	void LoadObjectInfo(objectInfo objectInfo);
 	void LoadObjectInfos(vector<objectInfo> objectInfos);
