@@ -110,9 +110,6 @@ private:
     ID3D11Buffer* mSkullVB;
     ID3D11Buffer* mSkullIB;
 
-    ID3D11Buffer* mTreeVB;
-    ID3D11Buffer* mTreeIB;
-
     ID3D11Buffer* mFBXVB;
     ID3D11Buffer* mFBXIB;
 	
@@ -126,14 +123,6 @@ private:
 
     ID3D11ShaderResourceView* mStoneTexSRV;
     ID3D11ShaderResourceView* mBrickTexSRV;
-
-	ID3D11ShaderResourceView* mTreeTexSRV;
-	ID3D11ShaderResourceView* mClothTexSRV;
-
-	ID3D11ShaderResourceView* mCommandoArmor;
-	ID3D11ShaderResourceView* mCommandoSkin;
-	ID3D11ShaderResourceView* mCommandoArmorNM;
-	ID3D11ShaderResourceView* mCommandoSkinNM;
 
     ID3D11ShaderResourceView* mStoneNormalTexSRV;
     ID3D11ShaderResourceView* mBrickNormalTexSRV;
@@ -193,7 +182,6 @@ private:
     Material mCylinderMat;
     Material mSphereMat;
     Material mSkullMat;
-    Material mTreeMat;
 
     Material* mFBXMats;
 
@@ -204,7 +192,6 @@ private:
     XMFLOAT4X4 mBoxScale;
     XMFLOAT4X4 mGridWorld;
     XMFLOAT4X4 mSkullWorld;
-    XMFLOAT4X4 *mTreeWorld;
     XMFLOAT4X4 *mFBXWorld;
 
     int mBoxVertexOffset;
@@ -215,11 +202,6 @@ private:
     float mLightRotationAngle;
     float mSkullRotationAngle;
     float mSkullPos;
-
-    std::vector<XMFLOAT3> mTreepositions;
-    std::vector<int> mTreeIndices;
-    int mTreeVertCount;
-    UINT mTreeIndexCount;
 
     UINT* mFBXVertexOffset;
     UINT* mFBXIndexOffset;
@@ -286,7 +268,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 
 ZeusApp::ZeusApp(HINSTANCE hInstance)
 : D3DApp(hInstance), mSky(0), mWalkCamMode(true), mShapesVB(0), mShapesIB(0), mSkullVB(0), mSkullIB(0), 
-  mScreenQuadVB(0), mScreenQuadIB(0), mStoneTexSRV(0), mBrickTexSRV(0), mTreeTexSRV(0), mClothTexSRV(0), mStoneNormalTexSRV(0), 
+  mScreenQuadVB(0), mScreenQuadIB(0), mStoneTexSRV(0), mBrickTexSRV(0), mStoneNormalTexSRV(0), 
   mBrickNormalTexSRV(0), mTreeNormalTexSRV(0), mDynamicCubeMapDSVSphere(0), mDynamicCubeMapSRVSphere(0), mDynamicCubeMapDSVSkull(0), 
   mDynamicCubeMapSRVSkull(0), mDynamicCubeMapDSVMirror(0), mDynamicCubeMapSRVMirror(0), mSkullIndexCount(0), mInstancedBuffer(0),
   mRenderOptions(RenderOptionsNormalMap), mSmap(0), mSmap2(0), mPhysX(0), mLightRotationAngle(0.0f), mFrustumCullingEnabled(true), mVisibleObjectCount(0)
@@ -428,12 +410,6 @@ ZeusApp::ZeusApp(HINSTANCE hInstance)
     mSkullMat.Diffuse  = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
     mSkullMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 16.0f);
     mSkullMat.Reflect  = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-
-    mTreeMat.Ambient  = XMFLOAT4(0.99f, 0.99f, 0.99f, 1.0f);
-    mTreeMat.Diffuse  = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-    mTreeMat.Specular = XMFLOAT4(0.8f, 0.8f, 0.8f, 0.8f);
-    mTreeMat.Reflect  = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-
 }
 
 
@@ -450,16 +426,12 @@ ZeusApp::~ZeusApp()
     ReleaseCOM(mShapesIB);
     ReleaseCOM(mSkullVB);
     ReleaseCOM(mSkullIB);
-    ReleaseCOM(mTreeVB);
-    ReleaseCOM(mTreeIB);
     ReleaseCOM(mFBXVB);
     ReleaseCOM(mFBXIB);
     ReleaseCOM(mScreenQuadVB);
     ReleaseCOM(mScreenQuadIB);
     ReleaseCOM(mStoneTexSRV);
     ReleaseCOM(mBrickTexSRV);
-    ReleaseCOM(mTreeTexSRV);
-    ReleaseCOM(mClothTexSRV);
     ReleaseCOM(mStoneNormalTexSRV);
     ReleaseCOM(mBrickNormalTexSRV);
     ReleaseCOM(mTreeNormalTexSRV);
@@ -487,6 +459,7 @@ ZeusApp::~ZeusApp()
 
 bool ZeusApp::Init()
 {
+    //mPhysX = new PhysX();
     mPhysX->Init();
 	//mPhysX->InitParticles(10, 0, 20, 0);
 
@@ -532,28 +505,10 @@ bool ZeusApp::Init()
         L"Textures/bricks.dds", 0, 0, &mBrickTexSRV, 0 ));
 
     HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
-        L"Textures/floor.dds", 0, 0, &mTreeTexSRV, 0 ));
-
-    HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
-        L"Textures/floor.dds", 0, 0, &mClothTexSRV, 0 ));
-
-    HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
         L"Textures/floor_nmap.dds", 0, 0, &mStoneNormalTexSRV, 0 ));
 
     HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
         L"Textures/bricks_nmap.dds", 0, 0, &mBrickNormalTexSRV, 0 ));
-
-	HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
-        L"Textures/CommandoArmor_DM.dds", 0, 0, &mCommandoArmor, 0 ));
-
-	HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
-        L"Textures/Commando_DM.dds", 0, 0, &mCommandoSkin, 0 ));
-
-	HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
-        L"Textures/CommandoArmor_NM.dds", 0, 0, &mCommandoArmorNM, 0 ));
-
-	HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
-        L"Textures/Commando_NM.dds", 0, 0, &mCommandoSkinNM, 0 ));
 
 	HR(D3DX11CreateShaderResourceViewFromFile(md3dDevice, 
         L"Textures/floor_nmap.dds", 0, 0, &mTreeNormalTexSRV, 0 ));
@@ -592,18 +547,10 @@ bool ZeusApp::Init()
     BuildShapeGeometryBuffers();
     BuildSkullGeometryBuffers();
     BuildScreenQuadGeometryBuffers();
-    //LoadTreeBuffer();
     
     LoadFBXBuffers();
     
-
     BuildInstancedBuffer();
-
-    // Trees
-    //CreateTreeMatrixes();
-
-    //FBX objects
-    
 
     return true;
 }
@@ -1316,74 +1263,9 @@ void ZeusApp::DrawScene(const Camera& camera, bool drawSphere, bool drawSkull, b
     UINT offset = 0;
     D3DX11_TECHNIQUE_DESC techDesc;
 
-    // Draw Loaded Objects
-   // md3dImmediateContext->IASetInputLayout(InputLayouts::PosNormalTexTan);
-   // md3dImmediateContext->IASetVertexBuffers(0, 1, &mTreeVB, &stride, &offset);
-   // md3dImmediateContext->IASetIndexBuffer(mTreeIB, DXGI_FORMAT_R32_UINT, 0);
-   //  
-   // activeObjTech->GetDesc( &techDesc );
-   // for(UINT p = 0; p < techDesc.Passes; ++p)
-   // {
-   //     //int ofs = 0;
-   //     // Draw the trees.
-   //     for(int i = 0; i < mTreecount; i++)
-   //     {
-   //         world = XMLoadFloat4x4(&mTreeWorld[i]);
-   //         worldInvTranspose = MathHelper::InverseTranspose(world);
-   //         worldViewProj = world*view*proj;
-			//vector<ID3D11ShaderResourceView*> texVec;
-			//vector<ID3D11ShaderResourceView*> normVec;
-
-			//texVec.push_back(mCommandoArmor);
-			//texVec.push_back(mCommandoSkin);
-
-			//normVec.push_back(mCommandoArmorNM);
-			//normVec.push_back(mCommandoSkinNM);
-
-   //         switch(mRenderOptions)
-   //         {
-   //         case RenderOptionsBasic:
-   //             Effects::BasicFX->SetWorld(world);
-   //             Effects::BasicFX->SetWorldInvTranspose(worldInvTranspose);
-   //             Effects::BasicFX->SetWorldViewProj(worldViewProj);
-   //             Effects::BasicFX->SetShadowTransform(world*shadowTransform);
-   //             Effects::BasicFX->SetShadowTransform2(world*shadowTransform2);
-   //             /*Effects::BasicFX->SetShadowTransforms(world*XMLoadFloat4x4(&mShadowTransformOmni[0]),world*XMLoadFloat4x4(&mShadowTransformOmni[1]),
-   //     world*XMLoadFloat4x4(&mShadowTransformOmni[2]),world*XMLoadFloat4x4(&mShadowTransformOmni[3]),
-   //     world*XMLoadFloat4x4(&mShadowTransformOmni[4]),world*XMLoadFloat4x4(&mShadowTransformOmni[5]));*/
-   //             Effects::BasicFX->SetTexTransform(XMMatrixScaling(1.0f, 1.0f, 1.0f));
-   //             Effects::BasicFX->SetMaterial(mTreeMat);
-   //             Effects::BasicFX->SetDiffuseMap(mTreeTexSRV);
-			//	Effects::BasicFX->SetTextureArray(texVec);
-   //             break;
-   //         case RenderOptionsNormalMap:
-   //             Effects::NormalMapFX->SetWorld(world);
-   //             Effects::NormalMapFX->SetWorldInvTranspose(worldInvTranspose);
-   //             Effects::NormalMapFX->SetWorldViewProj(worldViewProj);
-   //             Effects::NormalMapFX->SetShadowTransform(world*shadowTransform);
-   //             Effects::NormalMapFX->SetShadowTransform2(world*shadowTransform2);
-   //             /*Effects::NormalMapFX->SetShadowTransforms(world*XMLoadFloat4x4(&mShadowTransformOmni[0]),world*XMLoadFloat4x4(&mShadowTransformOmni[1]),
-   //     world*XMLoadFloat4x4(&mShadowTransformOmni[2]),world*XMLoadFloat4x4(&mShadowTransformOmni[3]),
-   //     world*XMLoadFloat4x4(&mShadowTransformOmni[4]),world*XMLoadFloat4x4(&mShadowTransformOmni[5]));*/
-   //             Effects::NormalMapFX->SetTexTransform(XMMatrixScaling(1.0f, 1.0f, 1.0f));
-   //             Effects::NormalMapFX->SetMaterial(mTreeMat);
-   //             Effects::NormalMapFX->SetDiffuseMap(mCommandoArmor);
-   //             Effects::NormalMapFX->SetNormalMap(mCommandoArmorNM);
-			//	Effects::NormalMapFX->SetNormalArray(normVec);
-			//	Effects::NormalMapFX->SetTextureArray(texVec);
-   //             break;
-   //         }
-
-   //         activeObjTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-   //         md3dImmediateContext->DrawIndexed(mTreeIndexCount, 0, 0);
-   //     }
-   // }
-
-    
-
     activeObjTech->GetDesc( &techDesc );
     // Draw the FBX objects
-	for(int i = 1; i < 5; i++)
+    for(int i = 0; i < mFBXObjects.size(); i++)
     {
 		// Draw the FBX objects
 		mFBXVB = mFBXObjects[i].GetVB();
@@ -2100,35 +1982,6 @@ void ZeusApp::DrawSceneToShadowMap()
     UINT offset = 0;
     D3DX11_TECHNIQUE_DESC techDesc;
 
-    //md3dImmediateContext->IASetInputLayout(InputLayouts::PosNormalTexTan);
-    //md3dImmediateContext->IASetVertexBuffers(0, 1, &mTreeVB, &stride, &offset);
-    //md3dImmediateContext->IASetIndexBuffer(mTreeIB, DXGI_FORMAT_R32_UINT, 0);
-    // 
-    //tessSmapTech->GetDesc( &techDesc );
-    //for(UINT p = 0; p < techDesc.Passes; ++p)
-    //{
-    //    // Draw the trees.
-    //    for(int i = 0; i < mTreecount; i++)
-    //    {
-    //        world = XMLoadFloat4x4(&mTreeWorld[i]);
-    //        worldInvTranspose = MathHelper::InverseTranspose(world);
-    //        worldViewProj = world*view*proj;
-    //        
-    //        Effects::BuildShadowMapFX->SetWorld(world);
-    //        Effects::BuildShadowMapFX->SetWorldInvTranspose(worldInvTranspose);
-    //        Effects::BuildShadowMapFX->SetWorldViewProj(worldViewProj);
-    //        Effects::BuildShadowMapFX->SetTexTransform(XMMatrixScaling(1.0f, 1.0f, 1.0f));
-
-    //        tessSmapTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-    //        md3dImmediateContext->DrawIndexed(mTreeIndexCount, 0, 0);
-    //    }
-    //}
-
-    // Draw the FBX objects
-    //md3dImmediateContext->IASetInputLayout(InputLayouts::PosNormalTexTan);
-    //md3dImmediateContext->IASetVertexBuffers(0, 1, &mFBXVB, &stride, &offset);
-    //md3dImmediateContext->IASetIndexBuffer(mFBXIB, DXGI_FORMAT_R32_UINT, 0);
-
     tessSmapTech->GetDesc( &techDesc );
     // Draw the FBX objects
     for(int i = 0; i < mFBXObjects.size(); i++)
@@ -2140,8 +1993,6 @@ void ZeusApp::DrawSceneToShadowMap()
 		md3dImmediateContext->IASetVertexBuffers(0, 1, &mFBXVB, &stride, &offset);
 		md3dImmediateContext->IASetIndexBuffer(mFBXIB, DXGI_FORMAT_R32_UINT, 0);
 		
-		vector<ID3D11ShaderResourceView*> texVec = mFBXObjects[i].GetTextureArray();
-		vector<ID3D11ShaderResourceView*> normVec = mFBXObjects[i].GetNormalArray();
 		for(int j = 0; j < mFBXObjects[i].GetObjectInfos().size(); j++)
 		{
 			objectInfo fbxpsr = mFBXObjects[i].GetObjectInfos()[j];
@@ -2547,163 +2398,6 @@ void ZeusApp::BuildScreenQuadGeometryBuffers()
     HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mScreenQuadIB));
 }
 
-void ZeusApp::LoadTreeBuffer()
-{
-    std::ifstream fin("Models/tree1.obj");
-    if(!fin)
-    {
-        MessageBox(0, L"Models/tree1.obj not found.", 0, 0);
-        return;
-    }
-
-    char line[100];
-    float x = 0, y = 0, z = 0;
-    //int normal;
-    std::vector<Vertex::PosNormalTexTan> vertices;
-    std::vector<int> indices;
-    std::vector<Vertex::PosNormalTexTan> verts;
-	std::vector<XMFLOAT3> positions;
-	std::vector<XMFLOAT3> norms;
-	std::vector<XMFLOAT2> texVec;
-	std::vector<int> texNum;
-    //std::vector<Vertex::Basic32> norms;
-    normal = 0;
-    tex = 0;
- //   while( !fin.eof() ) {
- //       fin >> line;
-
- //       if( strcmp( line, "#" ) == 0 ) {
- //           // Read in the comment and do nothing
- //           fin.getline( line, 100);
- //       } else {
- //           if( strcmp( line, "f" ) == 0 ) {
- //               for(int i = 0; i < 3; i++) {
- //                   fin >> line;
- //                   indices.push_back( atoi( strtok( line, "/" ) ) - 1 );
- //               }
- //           } else if (strcmp( line, "v" ) == 0 ) {
- //               Vertex::Basic32 vertex;
- //               fin >> vertex.Pos.x >> vertex.Pos.y >> vertex.Pos.z;
- //                   
- //               verts.push_back( vertex );
- //           } else if (strcmp( line, "vn" ) == 0 ) {
- //               fin >> verts[normal].Normal.x >> verts[normal].Normal.y >> verts[normal].Normal.z;
- //               normal++;
- //           } else if (strcmp( line, "vt" ) == 0 ) {
- //               fin >> verts[tex].Tex.x >> verts[tex].Tex.y;
- //               tex++;
- //           }
- //       }
- //   }
-	//fin.close();
- //   
-	//for(int i = 0; i < verts.size(); i++) {
- //       vertices.push_back(verts[i]);
-	//	positions.push_back(verts[i].Pos);
- //   }
-    FBXImporter importer;
-    importer.Import("Models/arrow.fbx", &positions, &indices, &norms, &texVec, &texNum);
-
-	Vertex::PosNormalTexTan tempVert;
-
-	XMVECTOR p;
-	XMVECTOR n;
-	for(int i = 0; i < positions.size(); i++)
-	{
-		p = XMVectorSet(positions[i].x, positions[i].y,positions[i].z, 1.0 );
-		n = XMVectorSet(norms[i].x, norms[i].y, norms[i].z, 1.0 );
-		XMVECTOR cross = XMVector3Cross(p, n);
-		XMStoreFloat3(&tempVert.TangentU, cross);
-
-		tempVert.Pos = positions[i];
-		tempVert.Normal = norms[i];
-		tempVert.Tex = texVec[i];
-		tempVert.TexNum = texNum[i];
-
-		vertices.push_back(tempVert);
-	}
-
-    mTreeIndexCount = indices.size();
-    mTreeVertCount = positions.size();
-	mTreepositions = positions;
-	mTreeIndices = indices;
-
-    D3D11_BUFFER_DESC vbd;
-    vbd.Usage = D3D11_USAGE_IMMUTABLE;
-    vbd.ByteWidth = sizeof(Vertex::PosNormalTexTan) * vertices.size();
-    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbd.CPUAccessFlags = 0;
-    vbd.MiscFlags = 0;
-    D3D11_SUBRESOURCE_DATA vinitData;
-    vinitData.pSysMem = &vertices[0];
-    HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mTreeVB));
-
-    //
-    // Pack the indices of all the meshes into one index buffer.
-    //
-
-    D3D11_BUFFER_DESC ibd;
-    ibd.Usage = D3D11_USAGE_IMMUTABLE;
-    ibd.ByteWidth = sizeof(UINT) * mTreeIndexCount;
-    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    ibd.CPUAccessFlags = 0;
-    ibd.MiscFlags = 0;
-    D3D11_SUBRESOURCE_DATA iinitData;
-    iinitData.pSysMem = &indices[0];
-    HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mTreeIB));
-}
-
-void ZeusApp::CreateTreeMatrixes()
-{
-    XMVECTOR treepositions[] = {
-        {	10.0f,		0.0f,		50.0f	},
-        {	0.0f,		0.0f,		30.0f	},
-        {	-10.0f,		0.0f,		75.0f	},
-        {	50.0f,		0.0f,		10.0f	},
-        {	70.0f,		0.0f,		50.0f	},
-        {	80.0f,		0.0f,		-30.0f	},
-        {	30.0f,		0.0f,		-10.0f	},
-        {	55.0f,		0.0f,		60.0f	},
-        {	85.0f,		0.0f,		40.0f	},
-        {	20.0f,		0.0f,		20.0f	},
-        {	82.0f,		0.0f,		-3.0f	}, 
-        {	46.0f,		0.0f,		-48.0f	}, 
-        {	-35.0f,		0.0f,		-39.0f	}, 
-        {	49.0f,		0.0f,		-27.0f	},
-        {	56.0f,		0.0f,		-77.0f	},
-        {	25.0f,		0.0f,		-72.0f	},
-        {	14.0f,		0.0f,		-53.0f	},
-        {	-9.0f,		0.0f,		-38.0f	},
-        {	-58.0f,		0.0f,		-45.0f	},
-        {	-81.0f,		0.0f,		-23.0f	},
-        {	-99.0f,		0.0f,		-45.0f	},
-        {	68.0f,		0.0f,		-89.0f	},
-        {	100.0f,		0.0f,		-72.0f	},
-        {	138.0f,		0.0f,		-36.0f	},
-        {	120.0f,		0.0f,		4.0f	},
-        {	79.0f,		0.0f,		84.0f	},
-        {	32.0f,		0.0f,		95.0f	},
-        {	-3.0f,		0.0f,		104.0f	},
-        {	-28.0f,		0.0f,		144.0f	}
-    };
-
-    mTreecount = sizeof( treepositions ) / sizeof( XMVECTOR );
-    mTreeWorld = new XMFLOAT4X4[mTreecount];
-    float scale = 8.0f;
-    XMMATRIX treeScale = XMMatrixScaling(scale, scale, scale);
-    XMMATRIX treeOffset;
-    XMFLOAT3 treeposition;
-
-    for(int i = 0; i < mTreecount; i++)
-    {
-        XMStoreFloat3(&treeposition, treepositions[i]);
-        treeOffset = XMMatrixTranslation(treeposition.x,treeposition.y, treeposition.z);
-        XMStoreFloat4x4(&mTreeWorld[i], XMMatrixMultiply(treeScale, treeOffset));
-        CreatePhysXTriangleMesh(ObjectNumbers::tree, mTreeVertCount, mTreepositions,
-            mTreeIndexCount, mTreeIndices, treeposition.x, treeposition.y, treeposition.z, scale);
-    }
-}
-
 void ZeusApp::LoadFBXBuffers()
 {
 	std::ifstream fin("Placement/scene.txt");
@@ -2742,6 +2436,11 @@ void ZeusApp::LoadFBXBuffers()
 	fin.close();
 
 	mFBXMats = new Material[numFiles];
+    mFBXObjects.clear();
+    string model;
+	vector<string> textures;
+	vector<string> normals;
+	vector<objectInfo> objInfo;
 
     for(int i = 0; i < numFiles; i++)
     {
@@ -2751,11 +2450,6 @@ void ZeusApp::LoadFBXBuffers()
 			MessageBox(0, L"object.txt not found.", 0, 0);
 			return;
 		}
-
-		string model;
-		vector<string> textures;
-		vector<string> normals;
-		vector<objectInfo> objInfo;
 
 		while(getline(oin, olines))
 		{
@@ -2820,7 +2514,7 @@ void ZeusApp::LoadFBXBuffers()
 		}
 		fin.close();
 
-		FBXObj* fbxobject;
+		FBXObj* fbxobject = new FBXObj();
 		fbxobject->Import(model, md3dDevice);
 		for(int k = 0; k < textures.size(); k++)
 		{
@@ -2833,91 +2527,26 @@ void ZeusApp::LoadFBXBuffers()
 		fbxobject->LoadObjectInfos(objInfo);
         mFBXObjects.push_back(*fbxobject);
 
-		//Put into physx
+        //Put into physx
 		for(int j = 0; j < objInfo.size(); j++)
 		{
 			CreatePhysXTriangleMesh(ObjectNumbers::cow, mFBXObjects[i].GetVertexCount(), mFBXObjects[i].GetVertices(),
 				mFBXObjects[i].GetIndexCount(), mFBXObjects[i].GetIndices(), objInfo[j].x, objInfo[j].y, objInfo[j].z, objInfo[j].sx);
 		}
 
+        textures.clear();
+        normals.clear();
+        objInfo.clear();
+        model = "";
+
 		//Load materials
 		mFBXMats[i].Ambient  = XMFLOAT4(0.99f, 0.99f, 0.99f, 1.0f);
 		mFBXMats[i].Diffuse  = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 		mFBXMats[i].Specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 0.8f);
 		mFBXMats[i].Reflect  = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-
-  //      FBXObj object;
-  //      object.Import(filenames[i], md3dDevice);
-		//object.LoadTexture(md3dDevice, L"Textures/PRP_Ornatearch_A_DM.bmp");
-		////object.LoadTexture(md3dDevice, L"Textures/PRP_Log_A_DM.bmp");
-		////object.LoadNormal(md3dDevice, L"Textures/CommandoArmor_NM.dds");
-		//object.LoadNormal(md3dDevice, L"Textures/PRP_Ornatearch_A_NM.bmp");
-
-        //mFBXObjects.push_back(&fbxobject);
-    }
-
-	//CreateFBXMatrixes();
-}
-
-void ZeusApp::CreateFBXMatrixes()
-{
-    objectInfo fbxpsr[] = {
-        {	10.0f,	0.0f,	50.0f,	0.06,	0.06,	0.06,	0.0f,	0.0f,	0.0f	},
-        {	0.0f,	0.0f,	30.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	-10.0f,	0.0f,	75.0f,	0.07,	0.07,	0.07,	0.0f,	0.0f,	0.0f	},
-        {	50.0f,	0.0f,	10.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	70.0f,	0.0f,	50.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	},
-        {	80.0f,	0.0f,	-30.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	30.0f,	0.0f,	-10.0f,	0.06,	0.06,	0.06,	0.0f,	0.0f,	0.0f	},
-        {	55.0f,	0.0f,	60.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	85.0f,	0.0f,	40.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	20.0f,	0.0f,	20.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	82.0f,	0.0f,	-3.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	}, 
-        {	46.0f,	0.0f,	-48.0f,	0.07,	0.07,	0.07,	0.0f,	0.0f,	0.0f	}, 
-        {	-35.0f,	0.0f,	-39.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	}, 
-        {	49.0f,	0.0f,	-27.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	56.0f,	0.0f,	-77.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	25.0f,	0.0f,	-72.0f,	0.10,	0.10,	0.10,	0.0f,	0.0f,	0.0f	},
-        {	14.0f,	0.0f,	-53.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	-9.0f,	0.0f,	-38.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	-58.0f,	0.0f,	-45.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	},
-        {	-81.0f,	0.0f,	-23.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	-99.0f,	0.0f,	-45.0f,	0.06,	0.06,	0.06,	0.0f,	0.0f,	0.0f	},
-        {	68.0f,	0.0f,	-89.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	100.0f,	0.0f,	-72.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	138.0f,	0.0f,	-36.0f,	0.07,	0.05,	0.07,	0.0f,	0.0f,	0.0f	},
-        {	120.0f,	0.0f,	4.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	79.0f,	0.0f,	84.0f,	0.08,	0.08,	0.08,	0.0f,	0.0f,	0.0f	},
-        {	32.0f,	0.0f,	95.0f,	0.07,	0.05,	0.07,	0.0f,	0.0f,	0.0f	},
-        {	-3.0f,	0.0f,	104.0f,	0.05,	0.05,	0.05,	0.0f,	0.0f,	0.0f	},
-        {	-28.0f,	0.0f,	144.0f,	0.09,	0.09,	0.09,	0.0f,	0.0f,	0.0f	}
-    };
-
-    mFBXWorldCount = sizeof( fbxpsr ) / sizeof( objectInfo );
-    mFBXWorld = new XMFLOAT4X4[mFBXWorldCount];
-    mFBXMats = new Material[mFBXWorldCount];
-    mFBXMats[0].Ambient  = XMFLOAT4(0.99f, 0.99f, 0.99f, 1.0f);
-    mFBXMats[0].Diffuse  = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-    mFBXMats[0].Specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 0.8f);
-    mFBXMats[0].Reflect  = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-
-    XMMATRIX fbxScale;
-    XMMATRIX fbxOffset;
-    XMMATRIX fbxRotation;
-
-    for(int i = 0; i < mFBXWorldCount; i++)
-    {
-		
-        fbxOffset = XMMatrixTranslation(fbxpsr[i].x, fbxpsr[i].y, fbxpsr[i].z);
-        fbxScale = XMMatrixScaling(fbxpsr[i].sx, fbxpsr[i].sy, fbxpsr[i].sz);
-        fbxRotation = XMMatrixRotationX(fbxpsr[i].rx) * XMMatrixRotationY(fbxpsr[i].ry) * XMMatrixRotationZ(fbxpsr[i].rz);
-		
-        XMStoreFloat4x4(&mFBXWorld[i], XMMatrixMultiply(fbxScale, XMMatrixMultiply(fbxOffset, fbxRotation) ) );
-        //Put into physx
-		//CreatePhysXTriangleMesh(ObjectNumbers::cow, mFBXObjects[0]->GetVertexCount(), mFBXObjects[0]->GetVertices(),
-		//	mFBXObjects[0]->GetIndexCount(), mFBXObjects[0]->GetIndices(), fbxpsr[i].x, fbxpsr[i].y, fbxpsr[i].z, fbxpsr[i].sx);
     }
 }
+
 
 void ZeusApp::BuildInstancedBuffer()
 {
