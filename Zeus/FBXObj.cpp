@@ -3,26 +3,13 @@
 //***************************************************************************************
 #include "FBXObj.h"
 
-UINT mIndexCount;
-UINT mVertexCount;
-vector<int> mIndices;
-vector<XMFLOAT3> mVertices;
 
-ID3D11Buffer* mVB = 0;
-ID3D11Buffer* mIB = 0;
 
-vector<ID3D11ShaderResourceView*> mTextureArray;
-vector<ID3D11ShaderResourceView*> mNormalArray;
-
-vector<objectInfo> mInformations;
-
-FBXImporter mFBXImporter;
-
-FBXObj::FBXObj() /*: 
+FBXObj::FBXObj() : 
     mVB(0),
     mIB(0),
     mIndexCount(0),
-    mVertexCount(0)*/
+    mVertexCount(0)
 {
 
 }

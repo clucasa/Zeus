@@ -54,7 +54,20 @@ public:
     vector<ID3D11ShaderResourceView*> GetNormalArray();
 
 private:
+    UINT mIndexCount;
+    UINT mVertexCount;
+    vector<int> mIndices;
+    vector<XMFLOAT3> mVertices;
 
+    ID3D11Buffer* mVB;
+    ID3D11Buffer* mIB;
+
+    vector<ID3D11ShaderResourceView*> mTextureArray;
+    vector<ID3D11ShaderResourceView*> mNormalArray;
+
+    vector<objectInfo> mInformations;
+
+    FBXImporter mFBXImporter;
     
 };
 
