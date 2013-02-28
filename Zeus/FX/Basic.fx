@@ -173,13 +173,13 @@ float4 PS(VertexOut pin,
 		else
 			texColor = gDiffuseMap.Sample(samLinear, pin.Tex);
 
-		if(gAlphaClip)
-		{
+		//if(gAlphaClip)
+		//{
 			// Discard pixel if texture alpha < 0.1.  Note that we do this
 			// test as soon as possible so that we can potentially exit the shader 
 			// early, thereby skipping the rest of the shader code.
-			clip(texColor.a - 0.1f);
-		}
+			clip(texColor.a - 0.4f);
+		//}
 	}
 	 
 	//

@@ -11,6 +11,8 @@
 #include < extensions/PxDefaultErrorCallback.h >
 #include < extensions/PxDefaultAllocator.h > 
 #include < PxToolkit.h >
+
+#include "PhysXRepX.h"
 #include "PhysXParticles.h"
 #include "PhysXHeightField.h"
 
@@ -62,6 +64,8 @@ public:
 
 	void InitParticles(int count, float x, float y, float z);
 	vector<PxVec3> GetParticlePositions();
+
+	void LoadRepX(const char* filename);
 
 public:
     PxFoundation*					mFoundation;

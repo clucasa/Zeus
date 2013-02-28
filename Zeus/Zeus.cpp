@@ -231,7 +231,7 @@ private:
     bool directionalLight;      // Turns on or off directional lights
     bool pointLight;            // Turns on or off point lights
     bool pointLightMove;        // Turns on or off point light movement
-    bool shootBox;              // Switches between firing boxes and creating at origin.
+    bool shootBox;              // Starts or stops firing
     bool showHelp;              // Toggles display of help screen
     /************************************/
 
@@ -537,7 +537,7 @@ bool ZeusApp::Init()
     directionalLight = true;
     pointLight = true;
     pointLightMove = false;
-    shootBox = true;
+    shootBox = false;
     showHelp = false;
 
     BuildDynamicCubeMapViewsSphere();
@@ -551,6 +551,8 @@ bool ZeusApp::Init()
     LoadFBXBuffers();
     
     BuildInstancedBuffer();
+
+	mPhysX->LoadRepX("RepXFiles/test2.RepX");
 
     return true;
 }
@@ -636,15 +638,13 @@ void ZeusApp::UpdateScene(float dt)
         if( state.Gamepad.bRightTrigger && state.Gamepad.bLeftTrigger < 256 )
         {
             shootspeed = (state.Gamepad.bRightTrigger / 255) * 40.0f;
-            if(shootBox)
-            {
+			//shootBox = true;
+            //if(shootBox)
+            //{
                 mPhysX->CreateBox( mCam.GetPosition().x, mCam.GetPosition().y, mCam.GetPosition().z,
                                    mCam.GetLook().x, mCam.GetLook().y, mCam.GetLook().z, shootspeed);
-            }
-            else
-            {
-                mPhysX->CreateBox( 0., 10.0f, 0., 0., 0., 0., 0.);
-            }
+            //}
+			//shootBox = false;
         }
 
     }
@@ -778,35 +778,40 @@ void ZeusApp::UpdateScene(float dt)
         }
     }
 
-    // Turn on/off shooting blocks
-    if( (GetAsyncKeyState('N') & 0x8000) && toggleable )
-    {
-        toggleable = false;
-        if(shootBox)
-        {
-            shootBox = false;
-        }
-        else
-        {
-            shootBox = true;
-        }
-    }
+    //// Turn on/off shooting blocks
+    //if( (GetAsyncKeyState('N') & 0x8000) && toggleable )
+    //{
+    //    toggleable = false;
+    //    if(shootBox)
+    //    {
+    //        shootBox = false;
+    //    }
+    //    else
+    //    {
+    //        shootBox = true;
+    //    }
+    //}
 
   // (state.Gamepad.bRightTrigger < 256) 
 
     // Shoot block with 'B'
     if( (GetAsyncKeyState('B') & 0x8000) )
     {
-        if(shootBox)
-        {
+        //if(shootBox)
+        //{
             mPhysX->CreateBox( mCam.GetPosition().x, mCam.GetPosition().y, mCam.GetPosition().z,
                                mCam.GetLook().x, mCam.GetLook().y, mCam.GetLook().z, shootspeed);
-        }
-        else
-        {
-            mPhysX->CreateBox( 0., 10.0f, 0., 0., 0., 0., 0.);
-        }
+        //}
+        //else
+        //{
+            //mPhysX->CreateBox( 0., 10.0f, 0., 0., 0., 0., 0.);
+        //}
     }
+	if(shootBox)
+	{
+        mPhysX->CreateBox( mCam.GetPosition().x, mCam.GetPosition().y, mCam.GetPosition().z,
+                               mCam.GetLook().x, mCam.GetLook().y, mCam.GetLook().z, shootspeed);
+	}
     
 
 
@@ -1571,6 +1576,17 @@ void ZeusApp::OnMouseDown(WPARAM btnState, int x, int y)
 {
     mLastMousePos.x = x;
     mLastMousePos.y = y;
+	if( (btnState & MK_LBUTTON) != 0 )
+    {
+		shootBox = true;
+	}
+	/*float shootspeed = 100.0;
+
+	if( (btnState & MK_LBUTTON) != 0 )
+    {
+		mPhysX->CreateBox( mCam.GetPosition().x, mCam.GetPosition().y, mCam.GetPosition().z,
+                               mCam.GetLook().x, mCam.GetLook().y, mCam.GetLook().z, shootspeed);
+	}*/
 
     SetCapture(mhMainWnd);
 }
@@ -1578,13 +1594,14 @@ void ZeusApp::OnMouseDown(WPARAM btnState, int x, int y)
 
 void ZeusApp::OnMouseUp(WPARAM btnState, int x, int y)
 {
+	shootBox = false;
     ReleaseCapture();
 }
 
 
 void ZeusApp::OnMouseMove(WPARAM btnState, int x, int y)
 {
-    if( (btnState & MK_LBUTTON) != 0 )
+    if( (btnState & MK_LBUTTON) && (btnState & MK_RBUTTON) != 0 )
     {
         // Make each pixel correspond to a quarter of a degree.
         float dx = XMConvertToRadians(0.25f*static_cast<float>(x - mLastMousePos.x));
