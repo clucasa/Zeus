@@ -65,6 +65,18 @@
     <Filter Include="Objects\FBX\FBX Importer">
       <UniqueIdentifier>{439faeb1-94e1-4863-b5fc-6a4fc94cdd57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PhysX\APEX">
+      <UniqueIdentifier>{a18385d5-0777-46d6-bca6-5f7de1b879ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysX\APEX\ApexCloth">
+      <UniqueIdentifier>{3c8539ea-9ce2-49c6-815e-3ffa1d274dbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysX\APEX\ApexDestruction">
+      <UniqueIdentifier>{c2647e6b-f8c5-4b7d-b44e-44217dde3e7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PhysX\APEX\ApexParticles">
+      <UniqueIdentifier>{ae1d82ce-6d75-41f3-8c8f-bc2a5a356d48}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="FX\BuildShadowMap.fx">
@@ -177,6 +189,12 @@
     <ClInclude Include="PhysXRepX.h">
       <Filter>PhysX\PhysXRepXLoader</Filter>
     </ClInclude>
+    <ClInclude Include="Apex.h">
+      <Filter>PhysX\APEX</Filter>
+    </ClInclude>
+    <ClInclude Include="ApexParticles.h">
+      <Filter>PhysX\APEX\ApexParticles</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Zeus.cpp" />
@@ -252,5 +270,16 @@
     <ClCompile Include="PhysXRepX.cpp">
       <Filter>PhysX\PhysXRepXLoader</Filter>
     </ClCompile>
+    <ClCompile Include="Apex.cpp">
+      <Filter>PhysX\APEX</Filter>
+    </ClCompile>
+    <ClCompile Include="ApexParticles.cpp">
+      <Filter>PhysX\APEX\ApexParticles</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Textures\Media\ZeusIcon.rc">
+      <Filter>d3d</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -103,6 +103,8 @@
     <None Include="FX\Terrain.fx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Apex.h" />
+    <ClInclude Include="ApexParticles.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="d3dApp.h" />
     <ClInclude Include="d3dUtil.h" />
@@ -130,6 +132,8 @@
     <ClInclude Include="xnacollision.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Apex.cpp" />
+    <ClCompile Include="ApexParticles.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="d3dApp.cpp" />
     <ClCompile Include="d3dUtil.cpp" />
@@ -155,6 +159,11 @@
     <ClCompile Include="Sky.cpp" />
     <ClCompile Include="TextureHelper.cpp" />
     <ClCompile Include="Vertex.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Textures\Media\ZeusIcon.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+    </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

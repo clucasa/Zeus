@@ -489,7 +489,7 @@ bool ZeusApp::Init()
     mTerrain.Init(md3dDevice, md3dImmediateContext, tii);
 
     terrainMeshInfo terMesh = mTerrain.GetMeshInfo();
-	mPhysX->CreateTerrain("Textures/terrain5.raw");
+	//mPhysX->CreateTerrain("Textures/terrain5.raw");
 
     mSmap = new ShadowMap(md3dDevice, SMapSize, SMapSize);
     mSmap2 = new ShadowMap(md3dDevice, SMapSize, SMapSize);
@@ -1576,7 +1576,7 @@ void ZeusApp::OnMouseDown(WPARAM btnState, int x, int y)
 {
     mLastMousePos.x = x;
     mLastMousePos.y = y;
-	if( (btnState & MK_LBUTTON) != 0 )
+	if( (btnState & MK_RBUTTON) != 0 )
     {
 		shootBox = true;
 	}
@@ -1601,7 +1601,7 @@ void ZeusApp::OnMouseUp(WPARAM btnState, int x, int y)
 
 void ZeusApp::OnMouseMove(WPARAM btnState, int x, int y)
 {
-    if( (btnState & MK_LBUTTON) && (btnState & MK_RBUTTON) != 0 )
+    if( (btnState & MK_LBUTTON) != 0 )
     {
         // Make each pixel correspond to a quarter of a degree.
         float dx = XMConvertToRadians(0.25f*static_cast<float>(x - mLastMousePos.x));
