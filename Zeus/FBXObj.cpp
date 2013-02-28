@@ -33,13 +33,23 @@ FBXObj::~FBXObj()
 
 void FBXObj::Import(char* filename, ID3D11Device* dev)
 {
+	vector<Vertex::PosNormalTexTan> vert;
     vector<XMFLOAT3> positions;
     vector<int> indices;
     vector<XMFLOAT3> norms;
 	vector<XMFLOAT2> texVec;
     vector<int> texNum;
 
-    mFBXImporter.Import(filename, &positions, &indices, &norms, &texVec, &texNum);
+    mFBXImporter.Import(filename, &vert);
+	
+	for(int i = 0; i < vert.size(); i++)
+	{
+		positions.push_back(vert[i].Pos);
+		norms.push_back(vert[i].Normal);
+		texVec.push_back(vert[i].Tex);
+		texNum.push_back(vert[i].TexNum);
+		indices.push_back(i);
+	}
 
     std::vector<Vertex::PosNormalTexTan> vertices;
     Vertex::PosNormalTexTan tempVert;

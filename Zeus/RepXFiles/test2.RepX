@@ -1,0 +1,198 @@
+<PhysX30Collection version="3.2.0" >
+	<UpVector >0 0 0</UpVector>
+	<Scale >
+		<Length >1</Length>
+		<Mass >1000</Mass>
+		<Speed >10</Speed>
+	</Scale>
+	<PxMaterial >
+		<Id >1473548576</Id>
+		<DynamicFriction >0.5</DynamicFriction>
+		<StaticFriction >0.5</StaticFriction>
+		<Restitution >0</Restitution>
+		<FrictionCombineMode >eAVERAGE</FrictionCombineMode>
+		<RestitutionCombineMode >eAVERAGE</RestitutionCombineMode>
+	</PxMaterial>
+	<PxMaterial >
+		<Id >1473548912</Id>
+		<DynamicFriction >0.3</DynamicFriction>
+		<StaticFriction >0.3</StaticFriction>
+		<Restitution >0.5</Restitution>
+		<FrictionCombineMode >eAVERAGE</FrictionCombineMode>
+		<RestitutionCombineMode >eAVERAGE</RestitutionCombineMode>
+	</PxMaterial>
+	<PxMaterial >
+		<Id >1473548800</Id>
+		<DynamicFriction >0.3</DynamicFriction>
+		<StaticFriction >0.3</StaticFriction>
+		<Restitution >0.5</Restitution>
+		<FrictionCombineMode >eAVERAGE</FrictionCombineMode>
+		<RestitutionCombineMode >eAVERAGE</RestitutionCombineMode>
+	</PxMaterial>
+	<PxMaterial >
+		<Id >1473549696</Id>
+		<DynamicFriction >0.3</DynamicFriction>
+		<StaticFriction >0.3</StaticFriction>
+		<Restitution >0.5</Restitution>
+		<FrictionCombineMode >eAVERAGE</FrictionCombineMode>
+		<RestitutionCombineMode >eAVERAGE</RestitutionCombineMode>
+	</PxMaterial>
+	<PxRigidStatic >
+		<Id >1473919072</Id>
+		<Name >groundPlane</Name>
+		<ActorFlags >eVISUALIZATION</ActorFlags>
+		<DominanceGroup >0</DominanceGroup>
+		<OwnerClient >0</OwnerClient>
+		<ClientBehaviorBits >0</ClientBehaviorBits>
+		<GlobalPose >0 0 0 1 0 0 0</GlobalPose>
+		<Shapes >
+			<PxShape >
+				<Geometry >
+					<PxPlaneGeometry />
+				</Geometry>
+				<LocalPose >0 -0.707107 0 0.707107 0 0 0</LocalPose>
+				<SimulationFilterData >4294967295 4294967295 4294967295 4294967295</SimulationFilterData>
+				<QueryFilterData >0 0 0 0</QueryFilterData>
+				<Materials >
+					<PxMaterialRef >1473548576</PxMaterialRef>
+				</Materials>
+				<ContactOffset >0.433071</ContactOffset>
+				<RestOffset >0.0393701</RestOffset>
+				<Flags >eSIMULATION_SHAPE|eSCENE_QUERY_SHAPE|eVISUALIZATION</Flags>
+				<Name >Ground</Name>
+			</PxShape>
+		</Shapes>
+	</PxRigidStatic>
+	<PxRigidDynamic >
+		<Id >1472757776</Id>
+		<Name >Bone03</Name>
+		<ActorFlags >eVISUALIZATION</ActorFlags>
+		<DominanceGroup >0</DominanceGroup>
+		<OwnerClient >0</OwnerClient>
+		<ClientBehaviorBits >0</ClientBehaviorBits>
+		<GlobalPose >0.92388 1.61448e-007 0.382683 -3.77236e-007 50.9117 1.27634e-005 50.9117</GlobalPose>
+		<Shapes >
+			<PxShape >
+				<Geometry >
+					<PxCapsuleGeometry >
+						<Radius >1.0</Radius>
+						<HalfHeight >5.0</HalfHeight>
+					</PxCapsuleGeometry>
+				</Geometry>
+				<LocalPose >0.0 0.0 0.0 0.0 0.0 0.0 1</LocalPose>
+				<SimulationFilterData >33 0 1 0</SimulationFilterData>
+				<QueryFilterData >0 0 0 0</QueryFilterData>
+				<Materials >
+					<PxMaterialRef >1473548800</PxMaterialRef>
+				</Materials>
+				<ContactOffset >0.433071</ContactOffset>
+				<RestOffset >0.0393701</RestOffset>
+				<Flags >eSIMULATION_SHAPE|eSCENE_QUERY_SHAPE|eVISUALIZATION</Flags>
+				<Name >Bone03</Name>
+			</PxShape>
+		</Shapes>
+		<CMassLocalPose >0 1.68587e-007 0 1 18.5 4.21644e-006 -3.8147e-006</CMassLocalPose>
+		<Mass >1.35758</Mass>
+		<MassSpaceInertiaTensor >0.98027 148.813 148.813</MassSpaceInertiaTensor>
+		<LinearVelocity >0 0 0</LinearVelocity>
+		<AngularVelocity >0 0 0</AngularVelocity>
+		<LinearDamping >0</LinearDamping>
+		<AngularDamping >0.05</AngularDamping>
+		<MaxAngularVelocity >7</MaxAngularVelocity>
+		<SleepThreshold >0.005</SleepThreshold>
+		<SolverIterationCounts >
+			<minPositionIters >200</minPositionIters>
+			<minVelocityIters >1</minVelocityIters>
+		</SolverIterationCounts>
+		<ContactReportThreshold >3.40282e+038</ContactReportThreshold>
+		<RigidDynamicFlags >eKINEMATIC</RigidDynamicFlags>
+	</PxRigidDynamic>
+	<PxRigidDynamic >
+		<Id >1472763184</Id>
+		<Name >Bone04</Name>
+		<ActorFlags >eVISUALIZATION</ActorFlags>
+		<DominanceGroup >0</DominanceGroup>
+		<OwnerClient >0</OwnerClient>
+		<ClientBehaviorBits >0</ClientBehaviorBits>
+		<GlobalPose >0.92388 1.52182e-007 0.382683 -4.20859e-007 76.3676 1.13011e-005 76.3675</GlobalPose>
+		<Shapes >
+			<PxShape >
+				<Geometry >
+					<PxCapsuleGeometry >
+						<Radius >1.20711</Radius>
+						<HalfHeight >17.7429</HalfHeight>
+					</PxCapsuleGeometry>
+				</Geometry>
+				<LocalPose >0.707107 -1.78814e-007 2.98023e-007 0.707107 18.95 2.44566e-006 7.62939e-006</LocalPose>
+				<SimulationFilterData >33 0 1 0</SimulationFilterData>
+				<QueryFilterData >0 0 0 0</QueryFilterData>
+				<Materials >
+					<PxMaterialRef >1473548912</PxMaterialRef>
+				</Materials>
+				<ContactOffset >0.433071</ContactOffset>
+				<RestOffset >0.0393701</RestOffset>
+				<Flags >eSIMULATION_SHAPE|eSCENE_QUERY_SHAPE|eVISUALIZATION</Flags>
+				<Name >Bone04</Name>
+			</PxShape>
+		</Shapes>
+		<CMassLocalPose >0 -3.37175e-007 0 1 18.95 2.44566e-006 7.62939e-006</CMassLocalPose>
+		<Mass >1.39134</Mass>
+		<MassSpaceInertiaTensor >1.00487 160.161 160.161</MassSpaceInertiaTensor>
+		<LinearVelocity >0 0 0</LinearVelocity>
+		<AngularVelocity >0 0 0</AngularVelocity>
+		<LinearDamping >0</LinearDamping>
+		<AngularDamping >0.05</AngularDamping>
+		<MaxAngularVelocity >7</MaxAngularVelocity>
+		<SleepThreshold >0.005</SleepThreshold>
+		<SolverIterationCounts >
+			<minPositionIters >200</minPositionIters>
+			<minVelocityIters >1</minVelocityIters>
+		</SolverIterationCounts>
+		<ContactReportThreshold >3.40282e+038</ContactReportThreshold>
+		<RigidDynamicFlags >eKINEMATIC</RigidDynamicFlags>
+	</PxRigidDynamic>
+	<PxRigidDynamic >
+		<Id >1472759856</Id>
+		<Name >Bone05</Name>
+		<ActorFlags >eVISUALIZATION</ActorFlags>
+		<DominanceGroup >0</DominanceGroup>
+		<OwnerClient >0</OwnerClient>
+		<ClientBehaviorBits >0</ClientBehaviorBits>
+		<GlobalPose >0.92388 1.49909e-007 0.382683 -4.55046e-007 101.823 2.68747e-005 101.823</GlobalPose>
+		<Shapes >
+			<PxShape >
+				<Geometry >
+					<PxCapsuleGeometry >
+						<Radius >1.20711</Radius>
+						<HalfHeight >17.6929</HalfHeight>
+					</PxCapsuleGeometry>
+				</Geometry>
+				<LocalPose >0.707107 5.96046e-008 8.9407e-008 0.707107 18.9 5.25128e-006 7.62939e-006</LocalPose>
+				<SimulationFilterData >33 0 1 0</SimulationFilterData>
+				<QueryFilterData >0 0 0 0</QueryFilterData>
+				<Materials >
+					<PxMaterialRef >1473549696</PxMaterialRef>
+				</Materials>
+				<ContactOffset >0.433071</ContactOffset>
+				<RestOffset >0.0393701</RestOffset>
+				<Flags >eSIMULATION_SHAPE|eSCENE_QUERY_SHAPE|eVISUALIZATION</Flags>
+				<Name >Bone05</Name>
+			</PxShape>
+		</Shapes>
+		<CMassLocalPose >0 0 0 1 18.9 5.25128e-006 7.62939e-006</CMassLocalPose>
+		<Mass >1.38758</Mass>
+		<MassSpaceInertiaTensor >1.00213 158.872 158.872</MassSpaceInertiaTensor>
+		<LinearVelocity >0 0 0</LinearVelocity>
+		<AngularVelocity >0 0 0</AngularVelocity>
+		<LinearDamping >0</LinearDamping>
+		<AngularDamping >0.05</AngularDamping>
+		<MaxAngularVelocity >7</MaxAngularVelocity>
+		<SleepThreshold >0.005</SleepThreshold>
+		<SolverIterationCounts >
+			<minPositionIters >200</minPositionIters>
+			<minVelocityIters >1</minVelocityIters>
+		</SolverIterationCounts>
+		<ContactReportThreshold >3.40282e+038</ContactReportThreshold>
+		<RigidDynamicFlags >eKINEMATIC</RigidDynamicFlags>
+	</PxRigidDynamic>
+</PhysX30Collection>

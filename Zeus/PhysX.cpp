@@ -326,7 +326,13 @@ void PhysX::InitParticles(int count, float x, float y, float z)
 	mParticles.push_back(particles);*/
 }
 
-vector<PxVec3> GetParticlePositions()
+vector<PxVec3> PhysX::GetParticlePositions()
 {
 	return mParticles[0].ReadParticlesPositions();
+}
+
+void PhysX::LoadRepX(const char* filename)
+{
+	PhysXRepX* pxRepx = new PhysXRepX();
+	pxRepx->LoadCollection(filename, *pxPhysics, *pxCooking, *pxScene);
 }

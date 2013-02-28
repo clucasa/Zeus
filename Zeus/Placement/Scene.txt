@@ -1,3 +1,4 @@
 # scene
 o Placement/archway.txt
 o Placement/bigbadman.txt
+o Placement/trees.txt
