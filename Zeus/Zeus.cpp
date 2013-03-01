@@ -461,6 +461,7 @@ bool ZeusApp::Init()
 {
     //mPhysX = new PhysX();
     mPhysX->Init();
+    mPhysX->InitApex();
 	//mPhysX->InitParticles(10, 0, 20, 0);
 
     if(!D3DApp::Init())

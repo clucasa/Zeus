@@ -10,6 +10,10 @@
 
 #include "PhysX.h"
 #include "ApexParticles.h"
+
+#include "NxApex.h"
+#include "NxApexSDK.h"
+
 #include <vector>
 
 #pragma comment(lib ,"ApexFramework_x86")
@@ -22,7 +26,14 @@ public:
     Apex();
     ~Apex();
 
+    void Init(PxPhysics* physics, PxCooking* cooking, PxScene* scene);
+
+    void InitParticles();
+
 private:
+    
+
+    
 };
 
 #endif
