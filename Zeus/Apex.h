@@ -13,6 +13,8 @@
 
 #include "NxApex.h"
 #include "NxApexSDK.h"
+#include "UserErrorCallback.h"
+#include "SampleApexRenderer.h"
 
 #include <vector>
 
@@ -32,7 +34,14 @@ public:
 
 private:
     
+    NxApexSDK*              gApexSDK;
+    NxApexScene*            gApexScene;
 
+    UserErrorCallback*		mErrorCallback;
+    SampleRenderer::Renderer*            renderer;
+    physx::apex::NxUserRenderResourceManager*	m_renderResourceManager;
+
+    bool                    initialized;
     
 };
 

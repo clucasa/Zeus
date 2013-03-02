@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -263,59 +263,49 @@ namespace Gu
 			PxBounds3 localBounds;
 			computeLocalBounds(localBounds);
 
-			const PxVec3 rayDir = aP1 - aP0;
-			PxF32 tnear, tfar;
+			PxVec3 rayDir = aP1 - aP0;
+			PxReal tnear;
+			PxReal tfar;
 			if (!Gu::intersectRayAABB2(localBounds.minimum, localBounds.maximum, aP0, rayDir, 1.0f, tnear, tfar)) 
 				return;
 
-			const PxVec3 p0 = aP0 + rayDir * tnear;
-			const PxVec3 p1 = aP0 + rayDir * tfar;
+			// have to make sure we are within bounds to account for numerical inaccuracies
+			// this is needed since sometimes p+td produces a point outside of the box even though t is supposed to be on the box
+			const PxVec3& mn = localBounds.minimum;
+			const PxVec3& mx = localBounds.maximum;
+			PxVec3 p0(mx.minimum(mn.maximum(aP0 + rayDir * tnear)));
+			PxVec3 p1(mx.minimum(mn.maximum(aP0 + rayDir * tfar)));
 
 			// row = x|u, column = z|v
 			PxF32 rowScale = mHfGeom->rowScale, columnScale = mHfGeom->columnScale, heightScale = mHfGeom->heightScale;
-			const PxI32 nbVi = mHeightField->getNbColumnsFast(), nbUi = mHeightField->getNbRowsFast();
-			PX_ASSERT(nbVi > 0 && nbUi > 0);
-
-			// if u0,v0 is near an integer, shift up or down in direction opposite to du,dv by PxMax(|u,v|*1e-7, 1e-7)
-			// (same direction as du,dv for u1,v1)
-			// we do this to ensure that we get at least one intersection with u or v when near the cell edge to eliminate special cases in the loop
-			PxF32 u0 = p0.x*mOneOverRowScale, v0 = p0.z*mOneOverColumnScale;
-			PxF32 u1 = p1.x*mOneOverRowScale, v1 = p1.z*mOneOverColumnScale;
-
-			// clampEps is chosen so that we get a reasonable clamp value for 65536*0.9999999f = 65535.992187500000
-			const PxF32 clampEps = 1e-7f; // shrink u,v to within 1e-7 away from the world bounds
-
-			// we now clamp uvs to [1e-7, rowLimit-1e-7] to avoid out of range uvs and eliminate related checks in the loop
-			PxF32 nbUcells = PxF32(nbUi-1)*(1.0f-clampEps), nbVcells = PxF32(nbVi-1)*(1.0f-clampEps);
 
 			// map p0 from (x, z, y) to (u0, v0, h0)
-			u0 = PxMin(PxMax(p0.x * mOneOverRowScale, 1e-7f), nbUcells); // multiplication rescales the u,v grid steps to 1
-			v0 = PxMin(PxMax(p0.z * mOneOverColumnScale, 1e-7f), nbVcells);
+			const PxReal u0 = p0.x * mOneOverRowScale; // this rescales the u,v grid steps to 1
+			const PxReal v0 = p0.z * mOneOverColumnScale;
 			const PxReal h0 = p0.y; // we don't scale y
+			const PxVec3 uhv0(u0, h0, v0);
 
 			// map p1 from (x, z, y) to (u1, v1, h1)
-			u1 = PxMin(PxMax(p1.x * mOneOverRowScale, 1e-7f), nbUcells);
-			v1 = PxMin(PxMax(p1.z * mOneOverColumnScale, 1e-7f), nbVcells);
+			const PxReal u1 = p1.x * mOneOverRowScale;
+			const PxReal v1 = p1.z * mOneOverColumnScale;
 			const PxReal h1 = p1.y; // we don't scale y
 
-			PxF32 du = u1 - u0, dv = v1 - v0; // recompute du, dv from adjusted uvs
 			const PxReal dh = h1 - h0;
+			PxReal du = u1 - u0, dv = v1 - v0;
 
-			// grid u&v step is always either 1 or -1, we precompute as both integers and floats to avoid conversions
-			// so step_uif is +/-1.0f, step_ui is +/-1
+			// grid u&v step is always either 1 or -1, we maintain integer and float copies to avoid conversions
 			const PxF32 step_uif = PxSign(du), step_vif = PxSign(dv);
 			const PxI32 step_ui = PxI32(step_uif), step_vi = PxI32(step_vif);
 
 
 			// clamp magnitude of du, dv to at least clampEpsilon to avoid special cases when dividing
-			const PxF32 divEpsilon = 1e-10f;
-			if (PxAbs(du) < divEpsilon)
-				du = step_uif * divEpsilon;
-			if (PxAbs(dv) < divEpsilon) 
-				dv = step_vif * divEpsilon;
+			const PxF32 clampEpsilon = 1e-10f;
+			if (PxAbs(du) < clampEpsilon)
+				du = step_ui * clampEpsilon;
+			if (PxAbs(dv) < clampEpsilon) 
+				dv = step_vi * clampEpsilon;
 
-			const PxVec3 uhv0(p0.x*mOneOverRowScale, h0, p0.z*mOneOverColumnScale); // unclamped uvs for tri intersection
-			const PxVec3 duhv((p1.x-p0.x)*mOneOverRowScale, dh, (p1.z-p0.z)*mOneOverColumnScale);
+			const PxVec3 duhv(du, dh, dv);
 			PxReal duhvLen = duhv.magnitude();
 			PxVec3 duhvNorm = duhv;
 			if (duhvLen > PX_NORMALIZATION_EPSILON)
@@ -328,10 +318,15 @@ namespace Gu
 			// t_un1 = (un+1-u0) / du        ;  we use +1 since we rescaled the grid step to 1
 			// therefore step_tu = t_un - t_un1 = 1/du
 
-			// seed the initial integer cell coordinates with u0, v0 rounded up or down with standard PxFloor/Ceil behavior
+			// seed integer cell coordinates with u0, v0 rounded up or down with standard PxFloor/Ceil behavior
 			// to ensure we have the correct first cell between (ui,vi) and (ui+step_ui,vi+step_vi)
-			PxI32 ui = (du > 0.0f) ? PxI32(PxFloor(u0)) : PxI32(PxCeil(u0));
-			PxI32 vi = (dv > 0.0f) ? PxI32(PxFloor(v0)) : PxI32(PxCeil(v0));
+			PxI32 numCols = mHeightField->getNbColumnsFast(), numRows = mHeightField->getNbRowsFast();
+			// this epsilon is to take care of a situation when we start out with for instance u0=numCols-1 and step_ui=1
+			// we artificially clamp the origin to a lower or higher cell to avoid bounds checks inside of the main loop
+			const PxF32 clampEpsU = PxAbs(u0) * 1e-7f; // PxFloor(u0+(1-1e-7f*u0)) == u0) holds for u0 up to 100k
+			const PxF32 clampEpsV = PxAbs(v0) * 1e-7f; // see computeCellCoordinates for validation code
+			PxI32 ui = (du > 0.0f ? PxMax(0, PxI32(PxFloor(u0-clampEpsU))) : PxMin(numRows-1, PxI32(PxCeil(u0+clampEpsU))));
+			PxI32 vi = (dv > 0.0f ? PxMax(0, PxI32(PxFloor(v0-clampEpsV))) : PxMin(numCols-1, PxI32(PxCeil(v0+clampEpsV))));
 
 			// find the nearest integer u, v in ray traversal direction and corresponding tu and tv
 			PxReal uhit0 = du > 0.0f ? ceilUp(u0) : floorDown(u0);
@@ -343,7 +338,7 @@ namespace Gu
 			PxReal tv = (vhit0-v0) / dv;
 			PX_ASSERT(tu >= 0.0f && tv >= 0.0f);
 
-			// compute step_tu and step_tv; t steps per grid cell in u and v direction
+			// compute step_tu and step_tv - t step per grid cell in u and v direction
 			PxReal step_tu = 1.0f / PxAbs(du), step_tv = 1.0f / PxAbs(dv);
 
 			// t advances at the same rate for u, v and h therefore we can compute h at u,v grid intercepts
@@ -365,16 +360,23 @@ namespace Gu
 			// seed hLinePrev as h(0)
 			PxReal hLinePrev = COMPUTE_H_FROM_T(0);
 
+			//#define BRUTE_FORCE_TEST
+			#ifdef BRUTE_FORCE_TEST
+			for (ui = 0, uif = 0.0f; ui < numRows-1; ui++, uif+=1.0f)
+				for (vi = 0, vif = 0.0f; vi < numCols-1; vi++, vif+=1.0f)
+			#else
 			do
+			#endif
 			{
-				tMinUV = PxMin(tu, tv); // determine where next closest u or v-intercept point is
-				PxF32 hLineNext = COMPUTE_H_FROM_T(tMinUV); // compute the corresponding h
+				tMinUV = PxMin(tu, tv);
+				PxF32 hLineNext = COMPUTE_H_FROM_T(tMinUV);
 
-				PX_ASSERT(ui >= 0 && ui < nbUi && vi >= 0 && vi < nbVi);
-				PX_ASSERT(ui+step_ui >= 0 && ui+step_ui < nbUi && vi+step_vi >= 0 && vi+step_vi < nbVi);
+				PX_ASSERT(ui >= 0 && ui < numRows && vi >= 0 && vi < numCols);
+				PX_ASSERT(ui+step_ui >= 0 && ui+step_ui < numRows && vi+step_vi >= 0 && vi+step_vi < numCols);
 
-				const PxU32 colIndex0 = nbVi * ui + vi;
-				const PxU32 colIndex1 = nbVi * (ui + step_ui) + vi;
+
+				const PxU32 colIndex0 = numCols * ui + vi;
+				const PxU32 colIndex1 = numCols * (ui + step_ui) + vi;
 				const PxReal h[4] = { // h[0]=h00, h[1]=h01, h[2]=h10, h[3]=h11 - oriented relative to step_uv
 					hf.getHeight(colIndex0) * heightScale, hf.getHeight(colIndex0 + step_vi) * heightScale,
 					hf.getHeight(colIndex1) * heightScale, hf.getHeight(colIndex1 + step_vi) * heightScale };
@@ -382,13 +384,16 @@ namespace Gu
 				PxF32 minH = PxMin(PxMin(h[0], h[1]), PxMin(h[2], h[3]));
 				PxF32 maxH = PxMax(PxMax(h[0], h[1]), PxMax(h[2], h[3]));
 
-				// how much space in h have we covered from previous to current u or v intercept
 				PxF32 hLineCellRangeMin = PxMin(hLinePrev, hLineNext);
 				PxF32 hLineCellRangeMax = PxMax(hLinePrev, hLineNext);
 
 				// do a quick overlap test in h, this should be rejecting the vast majority of tests
-				if (!(hLineCellRangeMin-hEpsilon > maxH || hLineCellRangeMax+hEpsilon < minH) ||
-					(useUnderFaceCallback && hLineCellRangeMax < maxH))
+				#ifndef BRUTE_FORCE_TEST
+				if (
+					!(hLineCellRangeMin-hEpsilon > maxH || hLineCellRangeMax+hEpsilon < minH) ||
+					(useUnderFaceCallback && hLineCellRangeMax < maxH)
+				)
+				#endif
 				{
 					PxF32 triU, triV;
 
@@ -412,8 +417,8 @@ namespace Gu
 					const PxF32 enlargeEpsilon = 0.0001f;
 					const PxVec3* p00a = &p00, *p01a = &p01, *p10a = &p10, *p11a = &p11;
 					PxU32 minui = PxMin(ui+step_ui, ui), minvi = PxMin(vi+step_vi, vi);
-					const PxU32 vertIndex = nbUi * minui + minvi;
-					const PxU32 cellIndex = vertIndex; // this adds a dummy unused cell in the end of each row; was -minui
+					const PxU32 vertIndex = numCols * minui + minvi;
+					const PxU32 cellIndex = vertIndex - minui;
 					bool isZVS = hf.isZerothVertexShared(vertIndex);
 					if (!isZVS)
 					{
@@ -534,13 +539,11 @@ namespace Gu
 					}
 				}
 
+				#ifndef BRUTE_FORCE_TEST
 				if (tu < tv)
 				{
 					last_tu = tu;
 					ui += step_ui;
-					// AP: very rare condition, wasn't able to repro but we need this if anyway (see DE6565)
-					if (ui+step_ui<0 || ui+step_ui>=nbUi) // should hold true for ui without step from previous iteration
-						break;
 					uif += step_uif;
 					tu += step_tu;
 				}
@@ -548,18 +551,19 @@ namespace Gu
 				{
 					last_tv = tv;
 					vi += step_vi;
-					// AP: very rare condition, wasn't able to repro but we need this if anyway (see DE6565)
-					if (vi+step_vi<0 || vi+step_vi>=nbVi) // should hold true for vi without step from previous iteration
-						break;
 					vif += step_vif;
 					tv += step_tv;
 				}
 				hLinePrev = hLineNext;
+				#endif
 			}
+			#ifndef BRUTE_FORCE_TEST
 			// since min(tu,tv) is the END of the active interval we need to check if PREVIOUS min(tu,tv) was past interval end
 			// since we update tMinUV in the beginning of the loop, at this point it stores the min(last tu,last tv)
 			while (tMinUV < tEnd);
-			#undef COMPUTE_H_FROM_T
+			#endif
+
+			#undef COMPUTE_H
 		}
 
 		PX_FORCE_INLINE	PxVec3 hf2shapen(const PxVec3& v) const

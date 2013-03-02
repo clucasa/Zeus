@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -47,8 +47,8 @@ PxD6Joint* physx::PxD6JointCreate(PxPhysics& physics,
 								  PxRigidActor* actor0, const PxTransform& localFrame0,
 								  PxRigidActor* actor1, const PxTransform& localFrame1)
 {
-	PX_CHECK_AND_RETURN_NULL(localFrame0.isSane(), "PxD6JointCreate: local frame 0 is not a valid transform"); 
-	PX_CHECK_AND_RETURN_NULL(localFrame1.isSane(), "PxD6JointCreate: local frame 1 is not a valid transform"); 
+	PX_CHECK_AND_RETURN_NULL(localFrame0.isValid(), "PxD6JointCreate: local frame 0 is not a valid transform"); 
+	PX_CHECK_AND_RETURN_NULL(localFrame1.isValid(), "PxD6JointCreate: local frame 1 is not a valid transform"); 
 	PX_CHECK_AND_RETURN_NULL(actor0 != actor1, "PxD6JointCreate: actors must be different");
 	PX_CHECK_AND_RETURN_NULL(actor0 && actor0->is<PxRigidBody>() || actor1 && actor1->is<PxRigidBody>(), "PxD6JointCreate: at least one actor must be dynamic");
 
@@ -141,8 +141,6 @@ PxJointLimitPair D6Joint::getTwistLimit() const
 void D6Joint::setTwistLimit(const PxJointLimitPair &l)
 {	
 	PX_CHECK_AND_RETURN(l.isValid(), "PxD6Joint::setTwistLimit: limit invalid");
-	PX_CHECK_AND_RETURN(l.lower>-PxTwoPi && l.upper<PxTwoPi , "PxD6Joint::twist limit must be strictly -2*PI and 2*PI");
-	PX_CHECK_AND_RETURN(l.upper - l.lower < PxTwoPi, "PxD6Joint::twist limit range must be strictly less than 2*PI");
 
 	data().twistLimit = l; 
 	mRecomputeLimits = true; 
@@ -170,8 +168,8 @@ PxTransform D6Joint::getDrivePosition() const
 
 void D6Joint::setDrivePosition(const PxTransform& pose)
 {	
-	PX_CHECK_AND_RETURN(pose.isSane(), "PxD6Joint::setDrivePosition: pose invalid");
-	data().drivePosition = pose.getNormalized(); 
+	PX_CHECK_AND_RETURN(pose.isValid(), "PxD6Joint::setDrivePosition: pose invalid");
+	data().drivePosition = pose; 
 	markDirty(); 
 }
 
@@ -298,7 +296,8 @@ us in from the limit
 This used to be in angular locked:
 
 	// Angular locked
-	//TODO fix this properly. 	
+	//TODO fix this properly. .really ugly hack to fix TTP 1716
+	
 	if(PxAbs(cB2cA.q.x) < 0.0001f) cB2cA.q.x = 0;
 	if(PxAbs(cB2cA.q.y) < 0.0001f) cB2cA.q.y = 0;
 	if(PxAbs(cB2cA.q.z) < 0.0001f) cB2cA.q.z = 0;

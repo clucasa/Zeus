@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -372,8 +372,7 @@ namespace Gu
 		const Vec3V initialSearchDir = V3Normalize(_initialSearchDir);
 
 		const Vec3V initialSupportA(a.supportSweepLocal(V3Neg(initialSearchDir)));
-		//const Vec3V initialSupportB(V3ScaleAdd(initialSearchDir, inflation, b.supportSweepLocal(initialSearchDir)));
-		const Vec3V initialSupportB(b.supportSweepLocal(initialSearchDir));
+		const Vec3V initialSupportB(V3ScaleAdd(initialSearchDir, inflation, b.supportSweepLocal(initialSearchDir)));
 		 
 		Vec3V Q[4] = {V3Sub(initialSupportA, initialSupportB), zeroV, zeroV, zeroV}; //simplex set
 		Vec3V A[4] = {initialSupportA, zeroV, zeroV, zeroV}; //ConvexHull a simplex set
@@ -392,8 +391,6 @@ namespace Gu
 
 		const FloatV eps1 = FloatV_From_F32(0.0001f);
 		const FloatV eps2 = FMul(eps1, eps1);
-
-		const FloatV inflation2 = FAdd(FMul(inflation, inflation), eps2);
 
 		Vec3V closA(initialSupportA), closB(initialSupportB);
 		FloatV sDist = V3Dot(v, v);
@@ -417,14 +414,13 @@ namespace Gu
 			const Vec3V nvNorm = V3Neg(vNorm);
 
 			supportA=a.supportSweepLocal(vNorm);
-			//supportB=V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
-			supportB=V3Add(x, b.supportSweepLocal(nvNorm));
+			supportB=V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
 		
 			//calculate the support point
 			support = V3Sub(supportA, supportB);
 			const Vec3V w = V3Neg(support);
-			const FloatV vw = FSub(V3Dot(vNorm, w), inflation);
-			const FloatV vr = V3Dot(vNorm, r);
+			const FloatV vw = V3Dot(v, w);
+			const FloatV vr = V3Dot(v, r);
 			if(FAllGrtr(vw, zero))
 			{
 	
@@ -463,8 +459,7 @@ namespace Gu
 						//supportA = a.supportSweepRelative(v, aToB);
 						
 						//supportB = V3Add(x, b.supportSweepLocal(V3Neg(v)));
-						//supportB = V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
-						supportB = V3Add(x, b.supportSweepLocal(nvNorm));
+						supportB = V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
 						//supportB = b.supportSweepLocal(V3Neg(v));
 						support = V3Sub(supportA, supportB);
 						minDist = maxDist;
@@ -485,13 +480,40 @@ namespace Gu
 			sDist = V3Dot(tempV, tempV);
 
 			bCon = FIsGrtr(minDist, sDist);
-			bNotTerminated = BAnd(FIsGrtr(sDist, inflation2), bCon);
+			bNotTerminated = BAnd(FIsGrtr(sDist, eps2), bCon);
 		}
 
 		lambda = _lambda;
-		
-		closestA = V3Sel(bCon, closA, closAA);
-		normal = V3Neg(V3Normalize(nor));
+		//if(FAllEq(_lambda, zero) && initialOverlap)
+		//{
+		//	//time of impact is zero, the sweep shape is intesect, use epa to get the normal and contact point
+		//	const FloatV contactDist = getSweepContactEps(a.getMargin(), b.getMargin());
+		//	//hitPoint = x;
+
+		///*	PxU8 tmp = 0;
+		//	if(gjkLocalPenetration<ConvexA, ConvexB>(a, b, contactDist, closA, closB, normal, sDist, NULL, NULL, tmp))*/
+		//	PxU8 tmp =0;
+		//	if(GJKLocalPenetration(a, b, contactDist, closA, closB, normal, sDist, NULL, NULL, tmp))
+		//	{
+		//		// in the local space of B
+		//		closestA = closA;
+		//	}
+		//	else
+		//	{
+		//		closestA = closAA;
+		//		normal= V3Normalize(V3Sub(closAA, closBB));
+		//	}
+		//}
+		//else
+		{
+			//const FloatV stepBackRatio = FDiv(offset, V3Length(r));
+			//lambda = FMax(FSub(lambda, stepBackRatio), zero);
+			//closA = V3Sel(bCon, closA, closAA);
+			//closestA = closA;
+			//closestA = V3Sub(V3Sel(bCon, closA, closAA), V3Scale(r, _lambda));
+			closestA = V3Sel(bCon, closA, closAA);
+			normal = V3Neg(V3Normalize(nor));
+		}
 		return true;
 	}
 
@@ -563,8 +585,7 @@ namespace Gu
 		
 
 		const Vec3V initialSupportA(a.supportSweepRelative(V3Neg(initialSearchDir), aToB));
-		//const Vec3V initialSupportB(V3ScaleAdd(initialSearchDir, inflation, b.supportSweepLocal(initialSearchDir)));
-		const Vec3V initialSupportB(b.supportSweepLocal(initialSearchDir));
+		const Vec3V initialSupportB(V3ScaleAdd(initialSearchDir, inflation, b.supportSweepLocal(initialSearchDir)));
 		 
 		Vec3V Q[4] = {V3Sub(initialSupportA, initialSupportB), zeroV, zeroV, zeroV}; //simplex set
 		Vec3V A[4] = {initialSupportA, zeroV, zeroV, zeroV}; //ConvexHull a simplex set
@@ -582,8 +603,6 @@ namespace Gu
 		//const FloatV eps2 = FMul(minMargin, onePerc);
 		const FloatV eps1 = FloatV_From_F32(0.0001f);
 		const FloatV eps2 = FMul(eps1, eps1);
-
-		const FloatV inflation2 = FAdd(FMul(inflation, inflation), eps2);
 
 		Vec3V closA(initialSupportA), closB(initialSupportB);
 		FloatV sDist = V3Dot(v, v);
@@ -607,14 +626,13 @@ namespace Gu
 			const Vec3V nvNorm = V3Neg(vNorm);
 
 			supportA=a.supportSweepRelative(vNorm, aToB);
-			//supportB=V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
-			supportB=V3Add(x, b.supportSweepLocal(nvNorm));
+			supportB=V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
 		
 			//calculate the support point
 			support = V3Sub(supportA, supportB);
 			const Vec3V w = V3Neg(support);
-			const FloatV vw = FSub(V3Dot(vNorm, w), inflation);
-			const FloatV vr = V3Dot(vNorm, r);
+			const FloatV vw = V3Dot(v, w);
+			const FloatV vr = V3Dot(v, r);
 			if(FAllGrtr(vw, zero))
 			{
 	
@@ -653,8 +671,7 @@ namespace Gu
 						//supportA = a.supportSweepRelative(v, aToB);
 						
 						//supportB = V3Add(x, b.supportSweepLocal(V3Neg(v)));
-						//supportB = V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
-						supportB = V3Add(x, b.supportSweepLocal(nvNorm));
+						supportB = V3ScaleAdd(nvNorm, inflation, V3Add(x, b.supportSweepLocal(nvNorm)));
 						//supportB = b.supportSweepLocal(V3Neg(v));
 						support = V3Sub(supportA, supportB);
 						minDist = maxDist;
@@ -675,14 +692,39 @@ namespace Gu
 			sDist = V3Dot(tempV, tempV);
 
 			bCon = FIsGrtr(minDist, sDist);
-			bNotTerminated = BAnd(FIsGrtr(sDist, inflation2), bCon);
+			bNotTerminated = BAnd(FIsGrtr(sDist, eps2), bCon);
 		}
 
 		lambda = _lambda;
-		
-		closestA = V3Sel(bCon, closA, closAA);
-		normal = V3Neg(V3Normalize(nor));
-	
+		//if(FAllEq(_lambda, zero)&& initialOverlap)
+		//{
+		//	//time of impact is zero, the sweep shape is intesect, use epa to get the normal and contact point
+		//	const FloatV contactDist = getSweepContactEps(a.getMargin(), b.getMargin());
+		//
+		//	//hitPoint = x;
+
+		//	PxU8 tmp = 0;
+		//	if(gjkRelativePenetration<ConvexA, ConvexB>(a, b, aToB, contactDist, closA, closB, normal, sDist, NULL, NULL, tmp))
+		//	{
+		//		// in the local space of B
+		//		closestA = closA;
+		//	}
+		//	else
+		//	{
+		//		closestA = closAA;
+		//		normal= V3Normalize(V3Sub(closAA, closBB));
+		//	}
+		//}
+		//else
+		{
+			//const FloatV stepBackRatio = FDiv(offset, V3Length(r));
+			//lambda = FMax(FSub(lambda, stepBackRatio), zero);
+			/*closA = V3Sel(bCon, closA, closAA);
+			closestA = closA;*/
+			//closestA = V3Sub(V3Sel(bCon, closA, closAA), V3Scale(r, _lambda));
+			closestA = V3Sel(bCon, closA, closAA);
+			normal = V3Neg(V3Normalize(nor));
+		}
 		return true;
 	}
 

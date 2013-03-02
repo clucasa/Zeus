@@ -3,9 +3,12 @@
 //***************************************************************************************
 #include "Apex.h"
 
-Apex::Apex()
+Apex::Apex() :
+    gApexSDK(NULL),
+    gApexScene(NULL)
 {
     //gApexScene = NULL;
+    initialized = false;
 }
 
 Apex::~Apex()
@@ -17,22 +20,25 @@ Apex::~Apex()
     //gApexScene->release();
 
 }
-NxApexSDK*              gApexSDK;
-    NxApexScene*            gApexScene;
+
 void Apex::Init(PxPhysics* physics, PxCooking* cooking, PxScene* scene)
 {
+    mErrorCallback = ::new UserErrorCallback("ApexErrors.txt", "a",true, true);
+    renderer = SampleRenderer::Renderer;
+    m_renderResourceManager = new SampleApexRenderResourceManager(*renderer);
+
     NxApexSDKDesc     apexDesc;
     NxApexCreateError  errorCode;
 
     apexDesc.physXSDK = physics;
     apexDesc.cooking = cooking;
-
-    //apexDesc.renderResourceManager = new NxUserRenderResourceManager
+    apexDesc.outputStream = mErrorCallback;
+    apexDesc.renderResourceManager = m_renderResourceManager;
     if(!apexDesc.isValid())
     {
         return;
     }
-
+    initialized = true;
     gApexSDK = NxCreateApexSDK(apexDesc, &errorCode);
     PX_ASSERT(gApexSDK);
     // Create the APEX scene
@@ -47,10 +53,12 @@ void Apex::Init(PxPhysics* physics, PxCooking* cooking, PxScene* scene)
 	{
 		return;
 	}
+    
 }
 
 void Apex::InitParticles()
 {
     ApexParticles* gApexParticles = new ApexParticles();
-    gApexParticles->Init(gApexSDK);
+    if(initialized)
+        gApexParticles->Init(gApexSDK);
 }

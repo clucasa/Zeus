@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -1175,7 +1175,7 @@ PX_INLINE void Gu::HeightField::getTriangleAdjacencyIndices(PxU32 triangleIndex,
 				adjacencyIndex0 = triangleIndex - 1;
 			}
 
-			if((cell / mData.columns != mData.rows - 2))
+			if((cell / mData.rows != mData.rows - 2))
 			{
 				adjacencyIndex2 = ((cell + mData.columns) * 2) + 1;
 			}
@@ -1229,7 +1229,7 @@ PX_INLINE void Gu::HeightField::getTriangleAdjacencyIndices(PxU32 triangleIndex,
 			adjacencyIndex1 = triangleIndex - 1;
 			adjacencyIndex2 = 0xFFFFFFFF;
 
-			if((cell / mData.columns != mData.rows - 2))
+			if((cell / mData.rows != mData.rows - 2))
 			{
 				adjacencyIndex0 = (cell + (mData.columns)) * 2;
 			}

@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -173,10 +173,9 @@ namespace Ext
 		
 		void setLocalPose(PxJointActorIndex::Enum actor, const PxTransform& pose)
 		{
-			PX_CHECK_AND_RETURN(pose.isSane(), "PxJoint::setLocalPose: transform is invalid");
-			PxTransform p = pose.getNormalized();
-			mLocalPose[actor] = p;
-			mData->c2b[actor] = getCom(actor).transformInv(p); 
+			PX_CHECK_AND_RETURN(pose.isValid(), "PxJoint::setLocalPose: transform is invalid");
+			mLocalPose[actor] = pose;
+			mData->c2b[actor] = getCom(actor).transformInv(pose); 
 			mPxConstraint->markDirty();
 		}
 
@@ -307,8 +306,8 @@ namespace Ext
 							PxRigidActor* actor0, const PxTransform& localFrame0, 
 							PxRigidActor* actor1, const PxTransform& localFrame1)
 		{
-			mLocalPose[0] = localFrame0.getNormalized();
-			mLocalPose[1] = localFrame1.getNormalized();
+			mLocalPose[0] = localFrame0;
+			mLocalPose[1] = localFrame1;
 			data.c2b[0] = getCom(actor0).transformInv(localFrame0);
 			data.c2b[1] = getCom(actor1).transformInv(localFrame1);
 			data.constraintFlags = PxConstraintFlags();

@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -147,8 +147,8 @@ namespace Gu
 		virtual void doSupport(const Ps::aos::Vec3VArg dir, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB, Ps::aos::Vec3V& support) const = 0;
 		virtual void doWarmStartSupportMargin(const PxI32 indexA, const PxI32 indexB, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB, Ps::aos::Vec3V& support) const = 0;
 		virtual void doSupportMargin(const Ps::aos::Vec3VArg dir, PxI32& indexA, PxI32& indexB, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB, Ps::aos::Vec3V& support) const = 0;
-		virtual Ps::aos::Vec3V doSupportSweep(const Ps::aos::Vec3VArg dir, const Ps::aos::Vec3VArg x, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB) const = 0;
-		virtual Ps::aos::Vec3V doSupportSweepOnB(const Ps::aos::Vec3VArg nvNorm, const Ps::aos::Vec3VArg x) const = 0;
+		virtual Ps::aos::Vec3V doSupportSweep(const Ps::aos::Vec3VArg dir, const Ps::aos::Vec3VArg x, const Ps::aos::FloatVArg inflation, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB) const = 0;
+		virtual Ps::aos::Vec3V doSupportSweepOnB(const Ps::aos::Vec3VArg nvNorm, const Ps::aos::Vec3VArg x, const Ps::aos::FloatVArg inflation) const = 0;
 		//virtual Ps::aos::Vec3V doSupportSweepOnA(const Ps::aos::Vec3VArg vNorm) const = 0;
 	};
 
@@ -204,22 +204,22 @@ namespace Gu
 			support = V3Sub(_sa, _sb);
 		}
 
-		Ps::aos::Vec3V doSupportSweep(const Ps::aos::Vec3VArg vNorm, const Ps::aos::Vec3VArg x, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB) const
+		Ps::aos::Vec3V doSupportSweep(const Ps::aos::Vec3VArg vNorm, const Ps::aos::Vec3VArg x, const Ps::aos::FloatVArg inflation, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB) const
 		{
 			using namespace Ps::aos;
 			const Vec3V nvNorm = V3Neg(vNorm);
 
 			const Vec3V _sa = convA.supportSweepRelative(vNorm, aToB);
-			const Vec3V _sb = V3Add(x, convB.supportSweepLocal(nvNorm));
+			const Vec3V _sb = V3ScaleAdd(nvNorm, inflation, V3Add(x, convB.supportSweepLocal(nvNorm)));
 			supportA = _sa;
 			supportB = _sb;
 			return V3Sub(_sa, _sb);
 		}
 
-		Ps::aos::Vec3V doSupportSweepOnB(const Ps::aos::Vec3VArg nvNorm, const Ps::aos::Vec3VArg x)const 
+		Ps::aos::Vec3V doSupportSweepOnB(const Ps::aos::Vec3VArg nvNorm, const Ps::aos::Vec3VArg x, const Ps::aos::FloatVArg inflation)const 
 		{
 			using namespace Ps::aos;
-			return V3Add(x, convB.supportSweepLocal(nvNorm));
+			return V3ScaleAdd(nvNorm, inflation, V3Add(x, convB.supportSweepLocal(nvNorm)));
 		}
 
 	/*	Ps::aos::Vec3V doSupportSweepOnA(const Ps::aos::Vec3VArg vNorm)const 
@@ -280,22 +280,22 @@ namespace Gu
 			support = V3Sub(_sa, _sb);
 		}
 
-		Ps::aos::Vec3V doSupportSweep(const Ps::aos::Vec3VArg vNorm, const Ps::aos::Vec3VArg x, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB) const
+		Ps::aos::Vec3V doSupportSweep(const Ps::aos::Vec3VArg vNorm, const Ps::aos::Vec3VArg x, const Ps::aos::FloatVArg inflation, Ps::aos::Vec3V& supportA, Ps::aos::Vec3V& supportB) const
 		{
 			using namespace Ps::aos;
 			const Vec3V nvNorm = V3Neg(vNorm);
 
 			const Vec3V _sa = convA.supportSweepLocal(vNorm);
-			const Vec3V _sb = V3Add(x, convB.supportSweepLocal(nvNorm));
+			const Vec3V _sb = V3ScaleAdd(nvNorm, inflation, V3Add(x, convB.supportSweepLocal(nvNorm)));
 			supportA = _sa;
 			supportB = _sb;
 			return V3Sub(_sa, _sb);
 		}
 
-		Ps::aos::Vec3V doSupportSweepOnB(const Ps::aos::Vec3VArg nvNorm, const Ps::aos::Vec3VArg x) const
+		Ps::aos::Vec3V doSupportSweepOnB(const Ps::aos::Vec3VArg nvNorm, const Ps::aos::Vec3VArg x, const Ps::aos::FloatVArg inflation) const
 		{
 			using namespace Ps::aos;
-			return V3Add(x, convB.supportSweepLocal(nvNorm));
+			return V3ScaleAdd(nvNorm, inflation, V3Add(x, convB.supportSweepLocal(nvNorm)));
 		}
 
 	/*	Ps::aos::Vec3V doSupportSweepOnA(const Ps::aos::Vec3VArg vNorm)const 

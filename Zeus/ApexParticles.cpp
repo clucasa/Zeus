@@ -15,6 +15,7 @@ ApexParticles::~ApexParticles()
 
 void ApexParticles::Init(NxApexSDK* gApexSDK)
 {
+    PX_ASSERT(gApexSDK);
     mParticleIosModule = static_cast<NxModuleParticleIos*>(gApexSDK->createModule("ParticleIOS"));
 	PX_ASSERT(mParticleIosModule);
     if(mParticleIosModule)

@@ -459,7 +459,7 @@ ZeusApp::~ZeusApp()
 
 bool ZeusApp::Init()
 {
-    //mPhysX = new PhysX();
+    mPhysX = new PhysX();
     mPhysX->Init();
     mPhysX->InitApex();
 	//mPhysX->InitParticles(10, 0, 20, 0);
@@ -2027,7 +2027,8 @@ void ZeusApp::DrawSceneToShadowMap()
                 Effects::BuildShadowMapFX->SetWorldInvTranspose(worldInvTranspose);
                 Effects::BuildShadowMapFX->SetWorldViewProj(worldViewProj);
                 Effects::BuildShadowMapFX->SetTexTransform(XMMatrixScaling(1.0f, 1.0f, 1.0f));
-        
+                Effects::BuildShadowMapFX->SetTextureArray( mFBXObjects[i].GetTextureArray() );
+
 				tessSmapTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
 				md3dImmediateContext->DrawIndexed(mFBXObjects[i].GetIndexCount(), 0, 0);
 			}

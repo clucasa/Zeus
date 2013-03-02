@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -86,25 +86,6 @@ void PxVehicleSetBasisVectors(const PxVec3& up, const PxVec3& forward)
 	gUp=up;
 	gForward=forward;
 }
-
-bool gApplyForces=false;
-
-void PxVehicleSetUpdateMode(PxVehicleUpdateMode::Enum vehicleUpdateMode)
-{
-	switch(vehicleUpdateMode)
-	{
-	case PxVehicleUpdateMode::eVELOCITY_CHANGE:
-		gApplyForces=false;
-		break;
-	case PxVehicleUpdateMode::eACCELERATION:
-		gApplyForces=true;
-		break;
-	default:
-		gApplyForces=false;
-		break;
-	}
-}
-
 
 PxF32 gThresholdForwardSpeedForWheelAngleIntegration=0;
 PxF32 gRecipThresholdForwardSpeedForWheelAngleIntegration=0;
@@ -2235,32 +2216,6 @@ PxVehicleDrive4W* vehDrive4W)
 	PxVehicleDriveDynData& driveDynData=vehDrive4W->mDriveDynData;
 	PxRigidDynamic* vehActor=vehDrive4W->mActor;
 
-	//Test if a non-zero drive torque was applied or if a non-zero steer angle was applied.
-	bool finiteInputApplied=false;
-	if(0!=driveDynData.getAnalogInput(PxVehicleDrive4W::eANALOG_INPUT_STEER_LEFT) || 
-	   0!=driveDynData.getAnalogInput(PxVehicleDrive4W::eANALOG_INPUT_STEER_RIGHT) ||
-	   0!=driveDynData.getAnalogInput(PxVehicleDrive4W::eANALOG_INPUT_ACCEL) ||
-	   driveDynData.getGearDown() || driveDynData.getGearUp())
-	{
-		finiteInputApplied=true;
-	}
-
-	//Awake or sleep.
-	if(vehActor->isSleeping())
-	{
-		if(finiteInputApplied)
-		{
-			//Driving inputs so we need the actor to start moving.
-			vehActor->wakeUp();
-		}
-		else
-		{
-			//No driving inputs and the actor is asleep.
-			//Do nothing.
-			return;
-		}
-	}
-
 	//In each block of 4 wheels record how many wheels are active.
 	PxU32 numActiveWheelsPerBlock4[PX_MAX_NUM_SUSPWHEELTIRE4]={0,0,0,0,0};
 	numActiveWheelsPerBlock4[0]=PxMin(numActiveWheels,(PxU32)4);
@@ -2382,8 +2337,6 @@ PxVehicleDrive4W* vehDrive4W)
 	//Ready to do the update.
 	PxVec3 carChassisLinVel=vehActor->getLinearVelocity();
 	PxVec3 carChassisAngVel=vehActor->getAngularVelocity();
-	PxVec3 carChassisLinVelOrig=carChassisLinVel;
-	PxVec3 carChassisAngVelOrig=carChassisAngVel;
 	const PxU32 numSubSteps=computeNumberOfSubsteps(vehDrive4W->mWheelsSimData,carChassisLinVel,carChassisTransform,gForward);
 	const PxF32 timeFraction=1.0f/(1.0f*numSubSteps);
 	const PxF32 subTimestep=timestep*timeFraction;
@@ -2573,16 +2526,8 @@ PxVehicleDrive4W* vehDrive4W)
 	}
 
 	//Set the new chassis linear/angular velocity.
-	if(!gApplyForces)
-	{
-		vehActor->setLinearVelocity(carChassisLinVel,false);
-		vehActor->setAngularVelocity(carChassisAngVel,false);
-	}
-	else
-	{
-		vehActor->addForce((carChassisLinVel-carChassisLinVelOrig)/timestep, PxForceMode::eACCELERATION, false);
-		vehActor->addTorque((carChassisAngVel-carChassisAngVelOrig)/timestep, PxForceMode::eACCELERATION, false);
-	}
+	vehActor->setLinearVelocity(carChassisLinVel);
+	vehActor->setAngularVelocity(carChassisAngVel);
 
 	//Pose the wheels from jounces, rotations angles, and steer angles.
 	poseWheels(wheels4SimDatas[0],wheels4DynDatas[0],steerAngles,&vehDrive4W->mWheelShapeMap[0],numActiveWheelsPerBlock4[0],vehActor);
@@ -2678,32 +2623,6 @@ void PxVehicleUpdate::updateTank
 	PxVehicleDriveDynData& driveDynData=vehDriveTank->mDriveDynData;
 	PxRigidDynamic* vehActor=vehDriveTank->mActor;
 
-	//Test if a non-zero drive torque was applied or if a non-zero steer angle was applied.
-	bool finiteInputApplied=false;
-	if(0!=driveDynData.getAnalogInput(PxVehicleDriveTank::eANALOG_INPUT_THRUST_LEFT) || 
-		0!=driveDynData.getAnalogInput(PxVehicleDriveTank::eANALOG_INPUT_THRUST_RIGHT) ||
-		0!=driveDynData.getAnalogInput(PxVehicleDriveTank::eANALOG_INPUT_ACCEL) ||
-		driveDynData.getGearDown() || driveDynData.getGearUp())
-	{
-		finiteInputApplied=true;
-	}
-
-	//Awake or sleep.
-	if(vehActor->isSleeping())
-	{
-		if(finiteInputApplied)
-		{
-			//Driving inputs so we need the actor to start moving.
-			vehActor->wakeUp();
-		}
-		else
-		{
-			//No driving inputs and the actor is asleep.
-			//Do nothing.
-			return;
-		}
-	}
-	
 	//In each block of 4 wheels record how many wheels are active.
 	PxU32 numActiveWheelsPerBlock4[PX_MAX_NUM_SUSPWHEELTIRE4]={0,0,0,0,0};
 	numActiveWheelsPerBlock4[0]=PxMin(numActiveWheels,(PxU32)4);
@@ -2837,8 +2756,6 @@ void PxVehicleUpdate::updateTank
 	//Ready to do the update.
 	PxVec3 carChassisLinVel=vehActor->getLinearVelocity();
 	PxVec3 carChassisAngVel=vehActor->getAngularVelocity();
-	const PxVec3 carChassisLinVelOrig=carChassisLinVel;
-	const PxVec3 carChassisAngVelOrig=carChassisAngVel;
 	const PxU32 numSubSteps=8;//computeNumberOfSubsteps(vehDriveTank->mWheelsSimData,carChassisLinVel,carChassisTransform,gForward);
 	const PxF32 timeFraction=1.0f/(1.0f*numSubSteps);
 	const PxF32 subTimestep=timestep*timeFraction;
@@ -2975,16 +2892,8 @@ void PxVehicleUpdate::updateTank
 	}
 
 	//Set the new chassis linear/angular velocity.
-	if(!gApplyForces)
-	{
-		vehActor->setLinearVelocity(carChassisLinVel,false);
-		vehActor->setAngularVelocity(carChassisAngVel,false);
-	}
-	else
-	{
-		vehActor->addForce((carChassisLinVel-carChassisLinVelOrig)/timestep, PxForceMode::eACCELERATION, false);
-		vehActor->addTorque((carChassisAngVel-carChassisAngVelOrig)/timestep, PxForceMode::eACCELERATION, false);
-	}
+	vehActor->setLinearVelocity(carChassisLinVel);
+	vehActor->setAngularVelocity(carChassisAngVel);
 
 	//Pose the wheels transforms from the jounces, rotations angles, and steer angles.
 	for(PxU32 i=0;i<numWheels4;i++)
@@ -3018,37 +2927,6 @@ void PxVehicleUpdate::updateNoDrive
 	const PxU32 numActiveWheels=vehNoDrive->mWheelsSimData.mNumActiveWheels;
 	const PxU32 numActiveWheelsInLast4=4-(4*numWheels4-numActiveWheels);
 	PxRigidDynamic* vehActor=vehNoDrive->mActor;
-
-	//Test if a non-zero drive torque was applied or if a non-zero steer angle was applied.
-	bool finiteInputApplied=false;
-	for(PxU32 i=0;i<numActiveWheels;i++)
-	{
-		if(vehNoDrive->getDriveTorque(i) != 0.0f)
-		{
-			finiteInputApplied=true;
-			break;
-		}
-		if(vehNoDrive->getSteerAngle(i)!=0.0f)
-		{
-			finiteInputApplied=true;
-			break;
-		}
-	}
-
-	if(vehActor->isSleeping())
-	{
-		if(finiteInputApplied)
-		{
-			//Driving inputs so we need the actor to start moving.
-			vehActor->wakeUp();
-		}
-		else
-		{
-			//No driving inputs and the actor is asleep.
-			//Do nothing.
-			return;
-		}
-	}
 
 	//In each block of 4 wheels record how many wheels are active.
 	PxU32 numActiveWheelsPerBlock4[PX_MAX_NUM_SUSPWHEELTIRE4]={0,0,0,0,0};
@@ -3108,8 +2986,6 @@ void PxVehicleUpdate::updateNoDrive
 	//Ready to do the update.
 	PxVec3 carChassisLinVel=vehActor->getLinearVelocity();
 	PxVec3 carChassisAngVel=vehActor->getAngularVelocity();
-	PxVec3 carChassisLinVelOrig=carChassisLinVel;
-	PxVec3 carChassisAngVelOrig=carChassisAngVel;
 	const PxU32 numSubSteps=computeNumberOfSubsteps(vehNoDrive->mWheelsSimData,carChassisLinVel,carChassisTransform,gForward);
 	const PxF32 timeFraction=1.0f/(1.0f*numSubSteps);
 	const PxF32 subTimestep=timestep*timeFraction;
@@ -3216,16 +3092,8 @@ void PxVehicleUpdate::updateNoDrive
 	}
 
 	//Set the new chassis linear/angular velocity.
-	if(!gApplyForces)
-	{
-		vehActor->setLinearVelocity(carChassisLinVel,false);
-		vehActor->setAngularVelocity(carChassisAngVel,false);
-	}
-	else
-	{
-		vehActor->addForce((carChassisLinVel-carChassisLinVelOrig)/timestep, PxForceMode::eACCELERATION, false);
-		vehActor->addTorque((carChassisAngVel-carChassisAngVelOrig)/timestep, PxForceMode::eACCELERATION, false);
-	}
+	vehActor->setLinearVelocity(carChassisLinVel);
+	vehActor->setAngularVelocity(carChassisAngVel);
 
 	//Pose the wheels from jounces, rotations angles, and steer angles.
 	for(PxU32 j=0;j<numWheels4;j++)

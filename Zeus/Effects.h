@@ -475,6 +475,7 @@ public:
 
 	void SetDiffuseMap(ID3D11ShaderResourceView* tex)   { DiffuseMap->SetResource(tex); }
 	void SetNormalMap(ID3D11ShaderResourceView* tex)    { NormalMap->SetResource(tex); }
+	void SetTextureArray(vector<ID3D11ShaderResourceView*> texVec) { TextureArrayPtr->SetResourceArray(&texVec[0], 0, texVec.size());}
 
 	ID3DX11EffectTechnique* BuildShadowMapTech;
 	ID3DX11EffectTechnique* BuildShadowMapAlphaClipTech;
@@ -495,6 +496,7 @@ public:
  
 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
 	ID3DX11EffectShaderResourceVariable* NormalMap;
+	ID3DX11EffectShaderResourceVariable* TextureArrayPtr;
 };
 #pragma endregion
 

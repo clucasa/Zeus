@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
   
@@ -788,21 +788,6 @@ static bool CollideGeoms(
 	return Status;
 }
 
-CCTParams::CCTParams() :
-	mNonWalkableMode		(PxCCTNonWalkableMode::ePREVENT_CLIMBING),
-	mQuatFromUp				(PxQuat::createIdentity()),
-	mUpDirection			(PxVec3(0.0f)),
-	mSlopeLimit				(0.0f),
-	mContactOffset			(0.0f),
-	mStepOffset				(0.0f),
-	mInvisibleWallHeight	(0.0f),
-	mMaxJumpHeight			(0.0f),
-	mMaxEdgeLength2			(0.0f),
-	mTessellation			(false),
-	mHandleSlope			(false)
-{
-}
-
 SweepTest::SweepTest() :
 	mRenderBuffer		(NULL),
 	mRenderFlags		(0),
@@ -830,6 +815,14 @@ SweepTest::SweepTest() :
 	mTouchedPosObstacle_Local	= PxVec3(0);
 	mTouchedPosObstacle_World	= PxVec3(0);
 
+	mUserParams.mHandleSlope			= false;
+	mUserParams.mSlopeLimit				= 0.0f;
+	mUserParams.mContactOffset			= 0.0f;
+	mUserParams.mStepOffset				= 0.0f;
+	mUserParams.mQuatFromUp				= PxQuat::createIdentity();
+	mUserParams.mUpDirection			= PxVec3(0.0f, 0.0f, 0.0f);
+	mUserParams.mInvisibleWallHeight	= 0.0f;
+	mUserParams.mMaxJumpHeight			= 0.0f;
 //	mVolumeGrowth	= 1.2f;	// Must be >1.0f and not too big
 	mVolumeGrowth	= 1.5f;	// Must be >1.0f and not too big
 //	mVolumeGrowth	= 2.0f;	// Must be >1.0f and not too big
@@ -1671,7 +1664,7 @@ void Controller::findTouchedObject(const PxControllerFilters& filters, const PxO
 	if(filters.mFilterFlags & PxSceneQueryFilterFlag::eDYNAMIC)
 	{
 		ControllerFilter preFilter;
-		preFilter.mShapeHashSet			= &mManager->mCCTShapes;
+		preFilter.mShapeHashSet			= mManager->getCCTShapeHashSet();
 		preFilter.mUserFilterCallback	= filters.mFilterCallback;
 		preFilter.mUserFilterFlags		= filters.mFilterFlags;
 
@@ -1857,9 +1850,6 @@ PxU32 Controller::move(SweptVolume& volume, const PxVec3& originalDisp, PxF32 mi
 	mCctModule.mNbFullUpdates		= 0;
 	mCctModule.mNbPartialUpdates	= 0;
 	mCctModule.mNbIterations		= 0;
-
-	mCctModule.mUserParams.mMaxEdgeLength2 = mManager->mMaxEdgeLength * mManager->mMaxEdgeLength;
-	mCctModule.mUserParams.mTessellation = mManager->mTessellation;
 
 	const PxVec3& upDirection = mUserParams.mUpDirection;
 
@@ -2093,9 +2083,9 @@ PxU32 Controller::move(SweptVolume& volume, const PxVec3& originalDisp, PxF32 mi
 	PxU32 collisionFlags = 0;
 
 	PxInternalCBData_FindTouchedGeom findGeomData;
-	findGeomData.scene				= mScene;
-	findGeomData.renderBuffer		= renderBuffer;
-	findGeomData.cctShapeHashSet	= &mManager->mCCTShapes;
+	findGeomData.scene			= mScene;
+	findGeomData.renderBuffer	= renderBuffer;
+	findGeomData.cctShapeHashSet = mManager->getCCTShapeHashSet();
 
 	mCctModule.mFlags &= ~STF_WALK_EXPERIMENT;
 
@@ -2147,8 +2137,6 @@ PxU32 Controller::move(SweptVolume& volume, const PxVec3& originalDisp, PxF32 mi
 
 PxU32 BoxController::move(const PxVec3& disp, PxF32 minDist, PxF32 elapsedTime, const PxControllerFilters& filters, const PxObstacleContext* obstacles)
 {
-	PX_SIMD_GUARD;
-
 	// Create internal swept box
 	SweptBox sweptBox;
 	sweptBox.mCenter		= mPosition;
@@ -2159,8 +2147,6 @@ PxU32 BoxController::move(const PxVec3& disp, PxF32 minDist, PxF32 elapsedTime, 
 
 PxU32 CapsuleController::move(const PxVec3& disp, PxF32 minDist, PxF32 elapsedTime, const PxControllerFilters& filters, const PxObstacleContext* obstacles)
 {
-	PX_SIMD_GUARD;
-
 	// Create internal swept capsule
 	SweptCapsule sweptCapsule;
 	sweptCapsule.mCenter		= mPosition;

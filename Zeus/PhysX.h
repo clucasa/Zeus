@@ -15,6 +15,7 @@
 #include "PhysXRepX.h"
 #include "PhysXParticles.h"
 #include "PhysXHeightField.h"
+#include "Apex.h"
 
 #include <vector>
 
@@ -67,21 +68,27 @@ public:
 
 	void LoadRepX(const char* filename);
 
+    void InitApex();
+    void InitApexParticles();
+
 public:
-    PxFoundation*					mFoundation;
-    PxPhysics*						mPhysics;
-	PxScene*						mScene;
-	
-	PxMaterial*						mMaterial;
-	PxDefaultCpuDispatcher*			mCpuDispatcher;
-	//pxtask::CudaContextManager*	mCudaContextManager;
 
 	PxU32							mNbThreads;
+    
+	PxFoundation*				pxFoundation;
+	PxScene*					pxScene;
+	PxPhysics*					pxPhysics;
+	PxDefaultCpuDispatcher*		pxCpuDispatcher;
+	PxMaterial*					defaultMaterial;
+	PxMaterial*					blockMaterial;
+	PxCooking*					pxCooking;
 
-	
+	struct TriMeshObj*			objectsLoaded;
+
+	PxParticleSystem* particleSys;
 	//std::vector<PhysXParticles>  mParticles;
 	
-
+    
 	//std::vector<PxRigidActor*>				mPhysicsActors;
 };
 

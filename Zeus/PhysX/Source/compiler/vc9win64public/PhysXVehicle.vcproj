@@ -5,7 +5,7 @@ Version="9.00"
 Name="PhysXVehicle"
 >
 <Platforms>
-	<Platform Name="x64"/>
+<Platform Name="x64"/>
 </Platforms>
 <Configurations>
   <Configuration
@@ -19,7 +19,7 @@ Name="PhysXVehicle"
     <Tool
       Name="VCCLCompilerTool"
       AdditionalIncludeDirectories="&quot;./../../../Include/foundation&quot;;&quot;./../../foundation/include&quot;;&quot;./../../../Include/physxprofilesdk&quot;;&quot;./../../../Include/physxvisualdebuggersdk&quot;;&quot;./../../../Include/vehicle&quot;;&quot;./../../../Include/common&quot;;&quot;./../../../Include/geometry&quot;;&quot;./../../../Include/extensions&quot;;&quot;./../../../Include&quot;;&quot;./../../Common/src&quot;;"
-      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;PX_PHYSX_STATIC_LIB;AG_PERFMON;_DEBUG;PX_CHECKED;PX_SUPPORT_VISUAL_DEBUGGER;"
+      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;AG_PERFMON;PX_PHYSX_STATIC_LIB;_DEBUG;PX_CHECKED;PX_SUPPORT_VISUAL_DEBUGGER;"
       WarningLevel="4"
       FloatingPointModel="2"
       StringPooling="true"
@@ -65,7 +65,7 @@ Name="PhysXVehicle"
     <Tool
       Name="VCCLCompilerTool"
       AdditionalIncludeDirectories="&quot;./../../../Include/foundation&quot;;&quot;./../../foundation/include&quot;;&quot;./../../../Include/physxprofilesdk&quot;;&quot;./../../../Include/physxvisualdebuggersdk&quot;;&quot;./../../../Include/vehicle&quot;;&quot;./../../../Include/common&quot;;&quot;./../../../Include/geometry&quot;;&quot;./../../../Include/extensions&quot;;&quot;./../../../Include&quot;;&quot;./../../Common/src&quot;;"
-      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;PX_PHYSX_STATIC_LIB;AG_PERFMON;NDEBUG;PX_CHECKED;PX_SUPPORT_VISUAL_DEBUGGER;"
+      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;AG_PERFMON;PX_PHYSX_STATIC_LIB;NDEBUG;PX_CHECKED;PX_SUPPORT_VISUAL_DEBUGGER;"
       WarningLevel="4"
       FloatingPointModel="2"
       StringPooling="true"
@@ -111,7 +111,7 @@ Name="PhysXVehicle"
     <Tool
       Name="VCCLCompilerTool"
       AdditionalIncludeDirectories="&quot;./../../../Include/foundation&quot;;&quot;./../../foundation/include&quot;;&quot;./../../../Include/physxprofilesdk&quot;;&quot;./../../../Include/physxvisualdebuggersdk&quot;;&quot;./../../../Include/vehicle&quot;;&quot;./../../../Include/common&quot;;&quot;./../../../Include/geometry&quot;;&quot;./../../../Include/extensions&quot;;&quot;./../../../Include&quot;;&quot;./../../Common/src&quot;;"
-      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;PX_PHYSX_STATIC_LIB;AG_PERFMON;NDEBUG;PX_PROFILE;PX_SUPPORT_VISUAL_DEBUGGER;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;"
+      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;AG_PERFMON;PX_PHYSX_STATIC_LIB;NDEBUG;PX_PROFILE;PX_SUPPORT_VISUAL_DEBUGGER;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;"
       WarningLevel="4"
       FloatingPointModel="2"
       StringPooling="true"
@@ -157,7 +157,7 @@ Name="PhysXVehicle"
     <Tool
       Name="VCCLCompilerTool"
       AdditionalIncludeDirectories="&quot;./../../../Include/foundation&quot;;&quot;./../../foundation/include&quot;;&quot;./../../../Include/physxprofilesdk&quot;;&quot;./../../../Include/physxvisualdebuggersdk&quot;;&quot;./../../../Include/vehicle&quot;;&quot;./../../../Include/common&quot;;&quot;./../../../Include/geometry&quot;;&quot;./../../../Include/extensions&quot;;&quot;./../../../Include&quot;;&quot;./../../Common/src&quot;;"
-      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;PX_PHYSX_STATIC_LIB;AG_PERFMON;NDEBUG;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;"
+      PreprocessorDefinitions="WIN64;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;AG_PERFMON;PX_PHYSX_STATIC_LIB;NDEBUG;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;"
       WarningLevel="4"
       FloatingPointModel="2"
       StringPooling="true"

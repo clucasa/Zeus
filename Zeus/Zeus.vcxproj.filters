@@ -77,6 +77,9 @@
     <Filter Include="PhysX\APEX\ApexParticles">
       <UniqueIdentifier>{ae1d82ce-6d75-41f3-8c8f-bc2a5a356d48}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PhysX\APEX\external">
+      <UniqueIdentifier>{aa2e631c-4cdb-4a81-ba20-8a5cd28732df}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="FX\BuildShadowMap.fx">
@@ -195,6 +198,12 @@
     <ClInclude Include="ApexParticles.h">
       <Filter>PhysX\APEX\ApexParticles</Filter>
     </ClInclude>
+    <ClInclude Include="PhysX\shared\include\UserErrorCallback.h">
+      <Filter>PhysX\APEX\external</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysX\shared\include\SampleApexRenderer.h">
+      <Filter>PhysX\APEX\external</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Zeus.cpp" />
@@ -275,6 +284,12 @@
     </ClCompile>
     <ClCompile Include="ApexParticles.cpp">
       <Filter>PhysX\APEX\ApexParticles</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysX\shared\src\UserErrorCallback.cpp">
+      <Filter>PhysX\APEX\external</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysX\shared\src\SampleApexRenderer.cpp">
+      <Filter>PhysX\APEX\external</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

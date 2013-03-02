@@ -10,45 +10,36 @@
 #include "PhysX.h"
 
 PhysX::PhysX() :
-    mFoundation(NULL),
-    mPhysics(NULL),
-	mScene(NULL),
-	mMaterial(NULL),
-	mCpuDispatcher(NULL),
-	//mCudaContextManager(NULL),
-	mNbThreads(1)
+	mNbThreads(1),
+    pxPhysics(NULL),
+    pxFoundation(NULL),
+    pxCooking(NULL),
+    pxScene(NULL)
 {
 	
 }
 	
-	PxFoundation*				pxFoundation;
-	PxScene*					pxScene;
-	PxPhysics*					pxPhysics;
-	PxDefaultCpuDispatcher*		pxCpuDispatcher;
-	PxMaterial*					defaultMaterial;
-	PxMaterial*					blockMaterial;
-	PxCooking*					pxCooking;
-
-	struct TriMeshObj*			objectsLoaded;
-
-	PxParticleSystem* particleSys;
+	
 	
 PhysX::~PhysX()
 {
-    mPhysics->release();
-    mFoundation->release();
-	mScene->release();
-	mCpuDispatcher->release();
-	mMaterial->release();
+    /*mApex = NULL;*/
 
 	pxFoundation->release();
+    pxFoundation = 0;
 	pxScene->release();
+    pxScene = 0;
 	pxPhysics->release();
+    pxPhysics = 0;
 	pxCpuDispatcher->release();
-	defaultMaterial->release();
+    pxCpuDispatcher = 0;
+	/*defaultMaterial->release();
+    defaultMaterial = 0;
 	blockMaterial->release();
+    blockMaterial = 0;*/
 
-	particleSys->releaseParticles();
+	//particleSys->releaseParticles();
+    //particleSys = 0;
 }
 
 static PxFilterFlags filterShader(
@@ -333,6 +324,21 @@ vector<PxVec3> PhysX::GetParticlePositions()
 
 void PhysX::LoadRepX(const char* filename)
 {
-	PhysXRepX* pxRepx = new PhysXRepX();
-	pxRepx->LoadCollection(filename, *pxPhysics, *pxCooking, *pxScene);
+	//PhysXRepX* pxRepx = new PhysXRepX();
+	//pxRepx->LoadCollection(filename, *pxPhysics, *pxCooking, *pxScene);
+}
+
+
+void PhysX::InitApex()
+{
+    Apex* mApex;  
+    mApex = new Apex();
+
+    mApex->Init(pxPhysics, pxCooking, pxScene);
+    mApex->InitParticles();
+}
+
+void PhysX::InitApexParticles()
+{
+
 }

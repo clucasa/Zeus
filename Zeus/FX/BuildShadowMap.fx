@@ -32,6 +32,7 @@ cbuffer cbPerObject
 // Nonnumeric values cannot be added to a cbuffer.
 Texture2D gDiffuseMap;
 Texture2D gNormalMap;
+Texture2D gTextureArray[5];
  
 SamplerState samLinear
 {
@@ -45,12 +46,15 @@ struct VertexIn
 	float3 PosL     : POSITION;
 	float3 NormalL  : NORMAL;
 	float2 Tex      : TEXCOORD;
+	int  TexNum  : TEXNUM;
 };
 
 struct VertexOut
 {
 	float4 PosH : SV_POSITION;
 	float2 Tex  : TEXCOORD;
+	int  TexNum  : TEXNUM1;
+
 };
  
 VertexOut VS(VertexIn vin)
@@ -59,6 +63,7 @@ VertexOut VS(VertexIn vin)
 
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
 	vout.Tex  = mul(float4(vin.Tex, 0.0f, 1.0f), gTexTransform).xy;
+	vout.TexNum = vin.TexNum;
 
 	return vout;
 }
@@ -195,9 +200,15 @@ DomainOut DS(PatchTess patchTess,
 void PS(VertexOut pin)
 {
 	float4 diffuse = gDiffuseMap.Sample(samLinear, pin.Tex);
+	for( int i = 0; i < 5; i++ )
+	{
+		if( i == pin.TexNum )
+			diffuse = gTextureArray[i].Sample(samLinear, pin.Tex);
+	}
+
 
 	// Don't write transparent pixels to the shadow map.
-	clip(diffuse.a - 0.15f);
+	clip(diffuse.a - 0.7);
 }
 
 // This is only used for alpha cut out geometry, so that shadows 
@@ -208,7 +219,7 @@ void TessPS(DomainOut pin)
 	float4 diffuse = gDiffuseMap.Sample(samLinear, pin.Tex);
 
 	// Don't write transparent pixels to the shadow map.
-	clip(diffuse.a - 0.15f);
+//	clip(diffuse.a - 0.1f);
 }
 
 RasterizerState Depth

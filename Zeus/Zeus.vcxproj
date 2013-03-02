@@ -47,7 +47,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <ExecutablePath>PhysX\Bin\win32;bin\x86;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>PhysX\Include;PhysX\Include\RepX;Include;PhysX\Source\foundation\include;PhysX\Source\RepX\src;$(IncludePath)</IncludePath>
+    <IncludePath>PhysX\shared\include;PhysX\Include;PhysX\Include\RepX;Include;PhysX\Source\foundation\include;PhysX\Source\RepX\src;$(IncludePath)</IncludePath>
     <LibraryPath>PhysX\Lib\win32;Lib\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -122,6 +122,8 @@
     <ClInclude Include="PhysXHeightField.h" />
     <ClInclude Include="PhysXParticles.h" />
     <ClInclude Include="PhysXRepX.h" />
+    <ClInclude Include="PhysX\shared\include\SampleApexRenderer.h" />
+    <ClInclude Include="PhysX\shared\include\UserErrorCallback.h" />
     <ClInclude Include="RenderStates.h" />
     <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="Sky.h" />
@@ -150,6 +152,8 @@
     <ClCompile Include="PhysXHeightField.cpp" />
     <ClCompile Include="PhysXParticles.cpp" />
     <ClCompile Include="PhysXRepX.cpp" />
+    <ClCompile Include="PhysX\shared\src\SampleApexRenderer.cpp" />
+    <ClCompile Include="PhysX\shared\src\UserErrorCallback.cpp" />
     <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="ShadowMap.cpp" />
     <ClCompile Include="SpriteBatch.cpp" />

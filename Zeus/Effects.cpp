@@ -365,6 +365,8 @@ BuildShadowMapEffect::BuildShadowMapEffect(ID3D11Device* device, const std::wstr
 	MaxTessFactor     = mFX->GetVariableByName("gMaxTessFactor")->AsScalar();
 	DiffuseMap        = mFX->GetVariableByName("gDiffuseMap")->AsShaderResource();
 	NormalMap         = mFX->GetVariableByName("gNormalMap")->AsShaderResource();
+
+	TextureArrayPtr	   = mFX->GetVariableByName("gTextureArray")->AsShaderResource();
 }
 
 BuildShadowMapEffect::~BuildShadowMapEffect()

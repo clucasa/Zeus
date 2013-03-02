@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -219,8 +219,25 @@ namespace shdfnd
 			}
 
 			template <typename HK, typename GK, class A, bool comp> 
-			PX_NOINLINE void copy(const HashBase<Entry,Key,HK,GK,A,comp>& other);
-			
+			PX_NOINLINE void copy(const HashBase<Entry,Key,HK,GK,A,comp>& other)
+			{
+				reserve(other.mSize);
+
+				for(PxU32 i = 0;i < other.size();i++)
+				{
+					for(PxU32 j = other.mHash[i]; j != EOL; j = other.mNext[j])
+					{
+						const Entry &otherEntry = other.mEntries[j];
+
+						bool exists;
+						Entry *newEntry = create(GK()(otherEntry), exists);
+						PX_ASSERT(!exists);
+
+						PX_PLACEMENT_NEW(newEntry, Entry)(otherEntry);
+					}
+				}
+			}
+
 			// free list management - if we're coalescing, then we use mFreeList to hold
 			// the top of the free list and it should always be equal to size(). Otherwise,
 			// we build a free list in the next() pointers.
@@ -384,32 +401,6 @@ namespace shdfnd
 				HashBase &mBase;
 			};
 		};
-		
-		template <class Entry,
-				  class Key,
-				  class HashFn,
-				  class GetKey,
-				  class Allocator,
-				  bool compacting>
-		template <typename HK, typename GK, class A, bool comp> 
-		PX_NOINLINE void HashBase<Entry,Key,HashFn,GetKey,Allocator,compacting>::copy(const HashBase<Entry,Key,HK,GK,A,comp>& other)
-		{
-			reserve(other.mSize);
-
-			for(PxU32 i = 0;i < other.size();i++)
-			{
-				for(PxU32 j = other.mHash[i]; j != EOL; j = other.mNext[j])
-				{
-					const Entry &otherEntry = other.mEntries[j];
-
-					bool exists;
-					Entry *newEntry = create(GK()(otherEntry), exists);
-					PX_ASSERT(!exists);
-
-					PX_PLACEMENT_NEW(newEntry, Entry)(otherEntry);
-				}
-			}
-		}
 
 		template <class Key, 
 				  class HashFn, 

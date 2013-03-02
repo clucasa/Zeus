@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
@@ -32,10 +32,9 @@
 #define PX_FOUNDATION_PSALLOCATOR_H
 
 #include "foundation/PxAllocatorCallback.h"
-#include "foundation/PxFoundation.h"
 #include "Ps.h"
 
-#if (defined(PX_WINDOWS) || defined (PX_WINMODERN) || defined(PX_X360))
+#if (defined(PX_WINDOWS) || defined(PX_X360) || defined PX_WIN8ARM)
 #include <typeinfo.h>
 #endif
 #if (defined(PX_APPLE))
@@ -71,7 +70,7 @@
 #define PX_PLACEMENT_NEW(p, T)  new(p) T
 
 // Don't use inline for alloca !!!
-#if defined (PX_WINDOWS) || defined(PX_WINMODERN)
+#ifdef PX_WINDOWS
     #include <malloc.h>
     #define PxAlloca(x) _alloca(x)
 #elif defined(PX_LINUX) || defined(PX_ANDROID)
@@ -79,6 +78,9 @@
     #define PxAlloca(x) alloca(x)
 #elif defined(PX_PSP2)
     #include <alloca.h>
+    #define PxAlloca(x) alloca(x)
+#elif defined(PX_WIN8ARM)
+    #include <malloc.h>
     #define PxAlloca(x) alloca(x)
 #elif defined(PX_APPLE)
     #include <alloca.h>
@@ -117,26 +119,6 @@ namespace shdfnd
 		{ 
 			// free(0) is guaranteed to have no side effect, no need to check
 			::free(ptr); 
-		}
-	};
-
-	/*
-	 * Allocator that simply calls straight back to the application without tracking.
-	 * This is used by the heap (Foundation::mNamedAllocMap) that tracks allocations
-	 * because it needs to be able to grow as a result of an allocation.
-	 * Making the hash table re-entrant to deal with this may not make sense.
-	 */
-	class NonTrackingAllocator 
-	{
-	public:
-		NonTrackingAllocator(const char* = 0) {}
-		void* allocate(size_t size, const char* file, int line) 
-		{
-			return PxGetFoundation().getAllocatorCallback().allocate(size, "NonTrackedAlloc", file, line);
-		}
-		void deallocate(void* ptr) 
-		{ 
-			PxGetFoundation().getAllocatorCallback().deallocate(ptr);
 		}
 	};
 

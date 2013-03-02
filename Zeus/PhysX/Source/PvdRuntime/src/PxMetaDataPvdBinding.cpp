@@ -1,13 +1,13 @@
-// This code contains NVIDIA Confidential Information and is disclosed to you
+// This code contains NVIDIA Confidential Information and is disclosed to you 
 // under a form of NVIDIA software license agreement provided separately to you.
 //
 // Notice
 // NVIDIA Corporation and its licensors retain all intellectual property and
-// proprietary rights in and to this software and related documentation and
-// any modifications thereto. Any use, reproduction, disclosure, or
-// distribution of this software and related documentation without an express
+// proprietary rights in and to this software and related documentation and 
+// any modifications thereto. Any use, reproduction, disclosure, or 
+// distribution of this software and related documentation without an express 
 // license agreement from NVIDIA Corporation is strictly prohibited.
-//
+// 
 // ALL NVIDIA DESIGN SPECIFICATIONS, CODE ARE PROVIDED "AS IS.". NVIDIA MAKES
 // NO WARRANTIES, EXPRESSED, IMPLIED, STATUTORY, OR OTHERWISE WITH RESPECT TO
 // THE MATERIALS, AND EXPRESSLY DISCLAIMS ALL IMPLIED WARRANTIES OF NONINFRINGEMENT,
@@ -23,7 +23,7 @@
 // components in life support devices or systems without express written approval of
 // NVIDIA Corporation.
 //
-// Copyright (c) 2008-2013 NVIDIA Corporation. All rights reserved.
+// Copyright (c) 2008-2012 NVIDIA Corporation. All rights reserved.
 // Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
 // Copyright (c) 2001-2004 NovodeX AG. All rights reserved.
 
@@ -733,8 +733,9 @@ void PvdMetaDataBinding::destroyInstance( PvdDataStream& inStream, const PxMater
 	removePhysicsGroupProperty( inStream, "Materials", inMaterial, ownerPhysics );
 }
 
-void PvdMetaDataBinding::sendAllProperties( PvdDataStream& inStream, const PxHeightField& inData )
+void PvdMetaDataBinding::createInstance( PvdDataStream& inStream, const PxHeightField& inData, const PxPhysics& ownerPhysics )
 {
+	inStream.createInstance( &inData );
 	PxHeightFieldDesc theDesc;
 	//Save the height field to desc.
 	theDesc.nbRows					= inData.getNbRows();
@@ -757,12 +758,8 @@ void PvdMetaDataBinding::sendAllProperties( PvdDataStream& inStream, const PxHei
 	inStream.setPropertyMessage( &inData, values );
 	PxHeightFieldSample* theSampleData = reinterpret_cast<PxHeightFieldSample*>(mBindingData->mTempU8Array.begin());
 	inStream.setPropertyValue( &inData, "Samples", theSampleData, theCellCount );
-}
+	
 
-void PvdMetaDataBinding::createInstance( PvdDataStream& inStream, const PxHeightField& inData, const PxPhysics& ownerPhysics )
-{
-	inStream.createInstance( &inData );
-	sendAllProperties(inStream, inData);
 	addPhysicsGroupProperty( inStream, "HeightFields", inData, ownerPhysics );
 }
 
@@ -966,30 +963,11 @@ void PvdMetaDataBinding::sendAllProperties( PvdDataStream& inStream, const PxSha
 	inStream.setPropertyMessage( &inObj, values );
 }
 
-void PvdMetaDataBinding::releaseAndRecreateGeometry( PvdDataStream& inStream, const PxShape& inObj, PxPhysics& ownerPhysics, BufferRegistrar& registrar )
+void PvdMetaDataBinding::releaseAndRecreateGeometry( PvdDataStream& inStream, const PxShape& inObj, BufferRegistrar& registrar )
 {
 	const void* geomInst = (reinterpret_cast<const PxU8*>( &inObj ) ) + 4;
 	inStream.destroyInstance( geomInst );
-	//Quick fix for HF modify, PxConvexMesh and PxTriangleMesh need recook, they should always be new if modified
-	if( inObj.getGeometryType() == PxGeometryType::eHEIGHTFIELD )
-	{
-		PxHeightFieldGeometry hfGeom;
-		inObj.getHeightFieldGeometry(hfGeom);
-		sendAllProperties(inStream, *hfGeom.heightField);
-	}
-
 	setGeometry( inStream, inObj, registrar );
-
-	//Need update actor cause PVD takes actor-shape as a pair.
-	{
-		PxRigidActor& actor = inObj.getActor();
-
-		if(const PxRigidStatic* rgS = actor.isRigidStatic())
-			sendAllProperties( inStream, *rgS );
-		else if(const PxRigidDynamic* rgD = actor.isRigidDynamic())
-			sendAllProperties( inStream, *rgD );
-	
-	}
 }
 
 void PvdMetaDataBinding::updateMaterials( PvdDataStream& inStream, const PxShape& inObj, BufferRegistrar& registrar )
